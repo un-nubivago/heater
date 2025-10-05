@@ -107,7 +107,7 @@ public class HeatPipeBlock extends PipeBlock implements Connector, WeatheringCop
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos,
             Block sourceBlock, Orientation orientation, boolean notify) {
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return;
         }
         HeaterBlockEntity.updateConnectedHeaters(level, pos, state);

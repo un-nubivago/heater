@@ -64,7 +64,7 @@ public class ThermostatBlock extends DirectionalBlock implements Connector, Weat
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos,
             Block sourceBlock, Orientation orientation, boolean notify) {
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return;
         }
         HeaterBlockEntity.updateConnectedHeaters(level, pos, level.getBlockState(pos));

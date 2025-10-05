@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [4.0.7] - 2025-10-05
+
+### Changed
+
++ Update target Minecraft version to 1.21.9.
+
 ## [4.0.6] - 2025-08-18
 
 ### Changed
@@ -133,6 +139,8 @@
 
 Initial release.
 
+[4.0.7]: https://github.com/NivOridocs/heater/releases/tag/4.0.7
+[4.0.6]: https://github.com/NivOridocs/heater/releases/tag/4.0.6
 [4.0.5]: https://github.com/NivOridocs/heater/releases/tag/4.0.5
 [4.0.4]: https://github.com/NivOridocs/heater/releases/tag/4.0.4
 [4.0.3]: https://github.com/NivOridocs/heater/releases/tag/4.0.3

@@ -1,38 +1,37 @@
 {
-	"schemaVersion": 1,
-	"id": "heater",
-	"version": "${version}",
-	"name": "Heater",
-	"description": "A bare minimal tech mod for centralised furnace fuel management.",
-	"authors": [
-		"Niv Oridocs"
-	],
+    "schemaVersion": 1,
+    "id": "heater",
+    "version": "${mod_version}",
+    "name": "Heater",
+    "description": "A bare minimal tech mod for centralised furnace fuel management.",
+    "authors": [
+        "Nubìvago"
+    ],
     "contributors": [
         "StarOcean"
     ],
-	"contact": {
-		"homepage": "https://modrinth.com/mod/heater",
-		"sources": "https://github.com/NivOridocs/heater"
-	},
-	"license": "MIT",
-	"icon": "assets/heater/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"niv.heater.Heater"
-		],
-		"client": [
-			"niv.heater.HeaterClient"
-		],
-		"fabric-datagen": [
-			"niv.heater.HeaterDataGenerator"
-		]
-	},
-	"depends": {
-		"fabricloader": ">=0.17.2",
-		"minecraft": "~1.21.6",
-		"java": ">=21",
-		"fabric-api": "*",
-		"burning": "*"
-	}
+    "contact": {
+        "homepage": "https://modrinth.com/mod/heater",
+        "sources": "https://github.com/NivOridocs/heater"
+    },
+    "license": "MIT",
+    "icon": "assets/heater/icon.png",
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            "niv.heater.Heater"
+        ],
+        "client": [
+            "niv.heater.HeaterClient"
+        ],
+        "fabric-datagen": [
+            "niv.heater.HeaterDataGenerator"
+        ]
+    },
+    "depends": {
+        "fabricloader": ">=${loader_version}",
+        "minecraft": "~${minecraft_version}",
+        "java": ">=21",
+        "fabric-api": ">=${fabric_version}"
+    }
 }
