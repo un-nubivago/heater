@@ -2,15 +2,14 @@ package niv.heater.block;
 
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED;
 
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
@@ -20,29 +19,23 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.WeatheringCopper;
-import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.WeatheringCopper.WeatherState;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.pathfinder.PathComputationType;
-import net.minecraft.world.level.redstone.Orientation;
-import niv.heater.api.Connector;
-import niv.heater.block.entity.HeaterBlockEntity;
+import niv.burning.api.BurningPropagator;
+import niv.burning.api.BurningStorage;
+import niv.heater.registry.HeaterBlocks;
 
-public class HeatPipeBlock extends PipeBlock implements Connector, WeatheringCopper, SimpleWaterloggedBlock {
+public class HeatPipeBlock extends PipeBlock implements BurningPropagator, SimpleWaterloggedBlock {
 
     @SuppressWarnings("java:S1845")
-    public static final MapCodec<HeatPipeBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            WeatherState.CODEC.fieldOf("weathering_state").forGetter(HeatPipeBlock::getAge),
-            Properties.CODEC.fieldOf("properties").forGetter(BlockBehaviour::properties))
-            .apply(instance, HeatPipeBlock::new));
+    public static final MapCodec<HeatPipeBlock> CODEC = simpleCodec(HeatPipeBlock::new);
 
-    private final WeatherState weatherState;
-
-    public HeatPipeBlock(WeatherState weatherState, Properties settings) {
+    public HeatPipeBlock(Properties settings) {
         super(6.0F, settings);
-        this.weatherState = weatherState;
         this.registerDefaultState(stateDefinition.any()
                 .setValue(DOWN, false)
                 .setValue(UP, false)
@@ -52,6 +45,13 @@ public class HeatPipeBlock extends PipeBlock implements Connector, WeatheringCop
                 .setValue(EAST, false)
                 .setValue(WATERLOGGED, false));
     }
+
+    public WeatherState getAge() {
+        return ((WeatheringCopper) HeaterBlocks.HEAT_PIPE.waxedMapping().inverse()
+                .getOrDefault(this, HeaterBlocks.HEAT_PIPE.unaffected())).getAge();
+    }
+
+    // PipeBlock
 
     @Override
     public MapCodec<? extends HeatPipeBlock> codec() {
@@ -104,23 +104,9 @@ public class HeatPipeBlock extends PipeBlock implements Connector, WeatheringCop
         }
     }
 
-    @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos,
-            Block sourceBlock, Orientation orientation, boolean notify) {
-        if (level.isClientSide()) {
-            return;
-        }
-        HeaterBlockEntity.updateConnectedHeaters(level, pos, state);
-    }
-
-    @Override
-    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moved) {
-        HeaterBlockEntity.updateConnectedHeaters(level, pos, state);
-    }
-
-    @Override
-    public void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
-        HeaterBlockEntity.updateConnectedHeaters(level, pos, state);
+    private boolean canConnect(Level level, BlockPos pos, Direction direction) {
+        return BurningPropagator.SIDED.find(level, pos.relative(direction), direction.getOpposite()) != null
+                || BurningStorage.SIDED.find(level, pos.relative(direction), direction.getOpposite()) != null;
     }
 
     @Override
@@ -128,23 +114,13 @@ public class HeatPipeBlock extends PipeBlock implements Connector, WeatheringCop
         builder.add(DOWN, UP, NORTH, SOUTH, WEST, EAST, WATERLOGGED);
     }
 
-    @Override
-    public Set<Direction> getConnected(BlockState state) {
-        var directions = HashSet.<Direction>newHashSet(6);
-        for (var direction : Direction.values()) {
-            if (state.getValue(PROPERTY_BY_DIRECTION.get(direction)).booleanValue()) {
-                directions.add(direction);
-            }
-        }
-        return directions;
-    }
+    // BurningPropagator
 
     @Override
-    public WeatherState getAge() {
-        return weatherState;
-    }
-
-    private boolean canConnect(Level level, BlockPos pos, Direction direction) {
-        return Connector.isConnector(level, pos, direction) || Connector.isBurningStorage(level, pos, direction);
+    public Set<Direction> evalPropagationTargets(Level level, BlockPos pos) {
+        return Direction.stream()
+                .filter(direction -> level.getBlockState(pos)
+                        .getValueOrElse(PROPERTY_BY_DIRECTION.get(direction), Boolean.FALSE))
+                .collect(Collectors.toCollection(() -> EnumSet.noneOf(Direction.class)));
     }
 }

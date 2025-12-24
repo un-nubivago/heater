@@ -1,7 +1,8 @@
 package niv.heater.block;
 
+import java.util.Set;
+
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -12,32 +13,32 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AbstractFurnaceBlock;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.WeatheringCopper;
+import net.minecraft.world.level.block.WeatheringCopper.WeatherState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.redstone.Orientation;
-import niv.heater.api.Connector;
+import niv.burning.api.BurningPropagator;
 import niv.heater.block.entity.HeaterBlockEntity;
 import niv.heater.registry.HeaterBlockEntityTypes;
+import niv.heater.registry.HeaterBlocks;
 
-public class HeaterBlock extends AbstractFurnaceBlock implements Connector, WeatheringCopper {
+public class HeaterBlock extends AbstractFurnaceBlock implements BurningPropagator {
 
     @SuppressWarnings("java:S1845")
-    public static final MapCodec<HeaterBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            WeatherState.CODEC.fieldOf("weathering_state").forGetter(HeaterBlock::getAge),
-            Properties.CODEC.fieldOf("properties").forGetter(BlockBehaviour::properties))
-            .apply(instance, HeaterBlock::new));
+    public static final MapCodec<HeaterBlock> CODEC = simpleCodec(HeaterBlock::new);
 
-    private final WeatherState weatherState;
-
-    public HeaterBlock(WeatherState weatherState, Properties properties) {
+    public HeaterBlock(Properties properties) {
         super(properties);
-        this.weatherState = weatherState;
     }
+
+    public WeatherState getAge() {
+        return ((WeatheringCopper) HeaterBlocks.HEATER.waxedMapping().inverse()
+                .getOrDefault(this, HeaterBlocks.HEATER.unaffected())).getAge();
+    }
+
+    // AbstractFurnaceBlock
 
     @Override
     public MapCodec<? extends HeaterBlock> codec() {
@@ -64,15 +65,6 @@ public class HeaterBlock extends AbstractFurnaceBlock implements Connector, Weat
     }
 
     @Override
-    protected void neighborChanged(BlockState blockState, Level level, BlockPos pos,
-            Block sourceBlock, Orientation orientation, boolean notify) {
-        if (level.isClientSide()) {
-            return;
-        }
-        level.getBlockEntity(pos, HeaterBlockEntityTypes.HEATER).ifPresent(HeaterBlockEntity::makeDirty);
-    }
-
-    @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         if (state.getValue(LIT).booleanValue()) {
             double x = pos.getX() + .5d;
@@ -94,8 +86,10 @@ public class HeaterBlock extends AbstractFurnaceBlock implements Connector, Weat
         }
     }
 
+    // BurningPropagator
+
     @Override
-    public WeatherState getAge() {
-        return weatherState;
+    public Set<Direction> evalPropagationTargets(Level level, BlockPos pos) {
+        return Set.of(Direction.values());
     }
 }

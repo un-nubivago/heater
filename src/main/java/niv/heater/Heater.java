@@ -7,6 +7,7 @@ import net.fabricmc.api.ModInitializer;
 import niv.heater.registry.HeaterBlockEntityTypes;
 import niv.heater.registry.HeaterBlocks;
 import niv.heater.registry.HeaterMenus;
+import niv.heater.registry.HeaterRegistrar;
 import niv.heater.registry.HeaterTabs;
 
 @SuppressWarnings("java:S2440")
@@ -29,6 +30,7 @@ public class Heater implements ModInitializer {
 
         HeaterBlocks.initialize();
         HeaterBlockEntityTypes.initialize();
+        HeaterRegistrar.initialize();
         HeaterMenus.initialize();
         HeaterTabs.initialize();
     }

@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
 @SuppressWarnings("java:S110")
-public class WeatheringHeaterBlock extends HeaterBlock {
+public class WeatheringHeaterBlock extends HeaterBlock implements WeatheringCopper {
 
     @SuppressWarnings("java:S1845")
     public static final MapCodec<WeatheringHeaterBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -19,8 +19,16 @@ public class WeatheringHeaterBlock extends HeaterBlock {
             Properties.CODEC.fieldOf("properties").forGetter(BlockBehaviour::properties))
             .apply(instance, WeatheringHeaterBlock::new));
 
+    private final WeatherState weatherState;
+
     public WeatheringHeaterBlock(WeatherState weatherState, Properties settings) {
-        super(weatherState, settings);
+        super(settings);
+        this.weatherState = weatherState;
+    }
+
+    @Override
+    public WeatherState getAge() {
+        return this.weatherState;
     }
 
     @Override

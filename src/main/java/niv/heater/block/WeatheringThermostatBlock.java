@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class WeatheringThermostatBlock extends ThermostatBlock {
+public class WeatheringThermostatBlock extends ThermostatBlock implements WeatheringCopper {
 
     @SuppressWarnings("java:S1845")
     public static final MapCodec<WeatheringThermostatBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
@@ -19,8 +19,16 @@ public class WeatheringThermostatBlock extends ThermostatBlock {
                     Properties.CODEC.fieldOf("properties").forGetter(BlockBehaviour::properties))
             .apply(instance, WeatheringThermostatBlock::new));
 
+    private final WeatherState weatherState;
+
     public WeatheringThermostatBlock(WeatherState weatherState, Properties settings) {
-        super(weatherState, settings);
+        super(settings);
+        this.weatherState = weatherState;
+    }
+
+    @Override
+    public WeatherState getAge() {
+        return this.weatherState;
     }
 
     @Override

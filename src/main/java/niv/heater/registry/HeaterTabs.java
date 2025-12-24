@@ -2,6 +2,8 @@ package niv.heater.registry;
 
 import static niv.heater.Heater.MOD_ID;
 
+import java.util.ArrayList;
+
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -16,23 +18,24 @@ public class HeaterTabs {
 
     public static final String TAB_NAME;
 
-    public static final CreativeModeTab HEATER;
+    public static final CreativeModeTab HEATER_TAB;
 
     static {
         TAB_NAME = "creative.heater.tab";
 
-        HEATER = Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, ResourceLocation.tryBuild(MOD_ID, "tab"),
+        var all = new ArrayList<Block>(24);
+        HeaterBlocks.HEATER.forEach(all::add);
+        HeaterBlocks.THERMOSTAT.forEach(all::add);
+        HeaterBlocks.HEAT_PIPE.forEach(all::add);
+
+        HEATER_TAB = Registry.register(
+                BuiltInRegistries.CREATIVE_MODE_TAB,
+                ResourceLocation.tryBuild(MOD_ID, "tab"),
                 FabricItemGroup.builder()
-                        .icon(HeaterBlocks.WAXED_HEATER.asItem()::getDefaultInstance)
+                        .icon(HeaterBlocks.HEATER.waxed().asItem()::getDefaultInstance)
                         .title(Component.translatable(TAB_NAME))
-                        .displayItems((parameters, output) -> {
-                            HeaterBlocks.HEATERS.values().stream().map(Block::asItem).forEach(output::accept);
-                            HeaterBlocks.WAXED_HEATERS.values().stream().map(Block::asItem).forEach(output::accept);
-                            HeaterBlocks.THERMOSTATS.values().stream().map(Block::asItem).forEach(output::accept);
-                            HeaterBlocks.WAXED_THERMOSTATS.values().stream().map(Block::asItem).forEach(output::accept);
-                            HeaterBlocks.HEAT_PIPES.values().stream().map(Block::asItem).forEach(output::accept);
-                            HeaterBlocks.WAXED_HEAT_PIPES.values().stream().map(Block::asItem).forEach(output::accept);
-                        }).build());
+                        .displayItems((parameters, output) -> all.stream().map(Block::asItem).forEach(output::accept))
+                        .build());
     }
 
     public static final void initialize() {
