@@ -239,7 +239,7 @@ public class HeaterBlockEntity extends BlockEntity implements MenuProvider, Name
             Level level, BlockPos zero, BurningContext context, Transaction transaction) {
         var storages = new BurningStorage[] { null, null };
 
-        BurningPropagator.searchBurningStorages(level, zero, (pos, storage) -> {
+        searchBurningStorages(level, zero, (pos, storage) -> {
             if (zero.equals(pos)) {
                 storages[0] = storage;
             } else if (storage instanceof HeaterBurningStorage) {
@@ -252,5 +252,44 @@ public class HeaterBlockEntity extends BlockEntity implements MenuProvider, Name
         });
 
         BurningStorage.transfer(storages[0], storages[1], storages[0].getBurning(context), context, transaction);
+    }
+
+    private static final void searchBurningStorages(Level level, BlockPos start,
+            BiPredicate<BlockPos, BurningStorage> shallReturn) {
+        var open = new LinkedList<Triple<Direction, BlockPos, Integer>>();
+        var closed = HashSet.newHashSet(64);
+        closed.add(start);
+
+        for (var elem = Triple.of((Direction) null, start, 64); elem != null; elem = open.poll()) {
+            var from = elem.getLeft();
+            var pos = elem.getMiddle();
+            var storage = BurningStorage.SIDED.find(level, pos, from);
+            if (storage != null && shallReturn.test(pos, storage))
+                return;
+
+            BurningPropagator propagator = null;
+            int hops = elem.getRight() - 1;
+            if (hops > 0) {
+                propagator = BurningPropagator.SIDED.find(level, pos, from);
+            }
+
+            if (propagator == null)
+                continue;
+
+            var dirs = propagator.evalPropagationTargets(level, pos).toArray(Direction[]::new);
+
+            for (int i = dirs.length - 1; i > 0; --i) {
+                int j = level.random.nextInt(i + 1);
+                var d = dirs[j];
+                dirs[j] = dirs[i];
+                dirs[i] = d;
+            }
+
+            for (var dir : dirs) {
+                var relative = pos.relative(dir);
+                if (closed.add(relative))
+                    open.addFirst(Triple.of(dir.getOpposite(), relative, hops));
+            }
+        }
     }
 }
