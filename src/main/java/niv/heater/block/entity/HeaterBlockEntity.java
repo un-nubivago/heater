@@ -1,31 +1,29 @@
 package niv.heater.block.entity;
 
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.function.BiPredicate;
+import java.util.function.Supplier;
+
+import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.Nullable;
 
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import com.google.common.base.Suppliers;
+
+import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponentGetter;
-import net.minecraft.core.component.DataComponentMap.Builder;
-import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.Containers;
-import net.minecraft.world.LockCode;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.Nameable;
+import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -38,73 +36,22 @@ import niv.heater.block.HeaterBlock;
 import niv.heater.registry.HeaterBlockEntityTypes;
 import niv.heater.screen.HeaterMenu;
 import niv.heater.util.HeaterBurningStorage;
-import niv.heater.util.HeaterContainer;
 
-public class HeaterBlockEntity extends BlockEntity implements MenuProvider, Nameable {
+public class HeaterBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
 
     public static final String CONTAINER_NAME = "container.heater";
 
-    private final HeaterContainer container = new HeaterContainer() {
-        @Override
-        protected boolean isFuel(ItemStack itemStack) {
-            return HeaterBlockEntity.this.level.fuelValues().isFuel(itemStack);
-        }
+    private static final Supplier<Component> DEFAULT_NAME = Suppliers
+            .memoize(() -> Component.translatable(CONTAINER_NAME));
 
-        @Override
-        public void setChanged() {
-            HeaterBlockEntity.this.setChanged();
-        }
-    };
+    private final HeaterBurningStorage burningStorage = new HeaterBurningStorage(this);
 
-    private final HeaterBurningStorage burningStorage = new HeaterBurningStorage() {
-        @Override
-        protected void onFinalCommit() {
-            HeaterBlockEntity.this.setChanged();
-        }
-    };
+    private final InventoryStorage[] wrappers = new InventoryStorage[7];
 
-    private final ContainerData burningData = new ContainerData() {
-        @Override
-        public int get(int index) {
-            switch (index) {
-                case 0:
-                    return HeaterBlockEntity.this.burningStorage.getCurrentBurning();
-                case 1:
-                    return HeaterBlockEntity.this.burningStorage.getMaxBurning();
-                default:
-                    throw new IndexOutOfBoundsException(index);
-            }
-        }
-
-        @Override
-        public void set(int index, int value) {
-            switch (index) {
-                case 0:
-                    HeaterBlockEntity.this.burningStorage.setCurrentBurning(value);
-                    break;
-                case 1:
-                    HeaterBlockEntity.this.burningStorage.setMaxBurning(value);
-                    break;
-                default:
-                    throw new IndexOutOfBoundsException(index);
-            }
-        }
-
-        @Override
-        public int getCount() {
-            return 2;
-        }
-    };
-
-    private LockCode lock;
-
-    @Nullable
-    private Component name;
+    private NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
 
     public HeaterBlockEntity(BlockPos pos, BlockState state) {
         super(HeaterBlockEntityTypes.HEATER, pos, state);
-        this.lock = LockCode.NO_LOCK;
-        this.name = null;
     }
 
     public boolean isBurning() {
@@ -112,7 +59,7 @@ public class HeaterBlockEntity extends BlockEntity implements MenuProvider, Name
     }
 
     private void consumeFuel(BurningContext context, Transaction transaction) {
-        var fuelStack = this.container.getItem(0);
+        var fuelStack = this.getItem(0);
         if (!this.isBurning() && !fuelStack.isEmpty()) {
             var fuelItem = fuelStack.getItem();
             var burning = Burning.of(fuelItem, context);
@@ -120,7 +67,7 @@ public class HeaterBlockEntity extends BlockEntity implements MenuProvider, Name
                 fuelStack.shrink(1);
                 if (fuelStack.isEmpty()) {
                     var bucketItem = fuelItem.getCraftingRemainder();
-                    this.container.setItem(0, bucketItem == null ? ItemStack.EMPTY : bucketItem);
+                    this.setItem(0, bucketItem == null ? ItemStack.EMPTY : bucketItem);
                 }
                 this.burningStorage.insert(burning.one(), context, transaction);
             }
@@ -131,46 +78,55 @@ public class HeaterBlockEntity extends BlockEntity implements MenuProvider, Name
         return this.burningStorage;
     }
 
-    public Storage<ItemVariant> getItemStorage(@Nullable Direction side) {
-        return this.container.getItemStorage(side);
+    public InventoryStorage getInventoryStorage(@Nullable Direction side) {
+        InventoryStorage.of(this, side);
+        var index = side == null ? 6 : side.ordinal();
+        if (wrappers[index] == null)
+            wrappers[index] = InventoryStorage.of(this, side);
+        return wrappers[index];
     }
 
-    // BlockEntity
+    // BaseContainerBlockEntity (required)
+
+    @Override
+    public int getContainerSize() {
+        return 1;
+    }
+
+    @Override
+    protected Component getDefaultName() {
+        return DEFAULT_NAME.get();
+    }
+
+    @Override
+    protected NonNullList<ItemStack> getItems() {
+        return this.items;
+    }
+
+    @Override
+    protected void setItems(NonNullList<ItemStack> items) {
+        this.items = items;
+    }
+
+    @Override
+    protected AbstractContainerMenu createMenu(int syncId, Inventory inventory) {
+        return new HeaterMenu(syncId, inventory, this, this.burningStorage);
+    }
+
+    // BlockEntity (override)
 
     @Override
     protected void loadAdditional(ValueInput valueInput) {
         super.loadAdditional(valueInput);
-        this.lock = LockCode.fromTag(valueInput);
-        this.name = valueInput.read("CustomName", ComponentSerialization.CODEC).orElse(null);
-        ContainerHelper.loadAllItems(valueInput, this.container.items);
+        ContainerHelper.loadAllItems(valueInput, this.items);
         this.burningStorage.load(valueInput);
     }
 
     @Override
     protected void saveAdditional(ValueOutput valueOutput) {
         super.saveAdditional(valueOutput);
-        this.lock.addToTag(valueOutput);
-        valueOutput.storeNullable("CustomName", ComponentSerialization.CODEC, this.name);
-        ContainerHelper.saveAllItems(valueOutput, this.container.items);
+        ContainerHelper.saveAllItems(valueOutput, this.items);
         this.burningStorage.save(valueOutput);
-    }
-
-    @Override
-    protected void applyImplicitComponents(DataComponentGetter getter) {
-        super.applyImplicitComponents(getter);
-        this.name = getter.get(DataComponents.CUSTOM_NAME);
-        this.lock = getter.getOrDefault(DataComponents.LOCK, LockCode.NO_LOCK);
-        getter.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY).copyInto(this.container.getItems());
-    }
-
-    @Override
-    protected void collectImplicitComponents(Builder builder) {
-        super.collectImplicitComponents(builder);
-        builder.set(DataComponents.CUSTOM_NAME, this.name);
-        if (!this.lock.equals(LockCode.NO_LOCK)) {
-            builder.set(DataComponents.LOCK, this.lock);
-        }
-        builder.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(this.container.getItems()));
     }
 
     @Override
@@ -180,40 +136,25 @@ public class HeaterBlockEntity extends BlockEntity implements MenuProvider, Name
     }
 
     @Override
-    public void preRemoveSideEffects(BlockPos blockPos, BlockState blockState) {
-        Containers.dropContents(this.level, blockPos, this.container);
+    public boolean canPlaceItem(int slot, ItemStack stack) {
+        return this.level.fuelValues().isFuel(stack) || stack.is(Items.BUCKET) && !this.items.get(0).is(Items.BUCKET);
     }
 
-    // MenuProvider
+    // WorldlyContainer
 
     @Override
-    public Component getDisplayName() {
-        return this.getName();
-    }
-
-    @Override
-    public AbstractContainerMenu createMenu(int syncId, Inventory inventory, Player player) {
-        if (BaseContainerBlockEntity.canUnlock(player, this.lock, this.getDisplayName())) {
-            return new HeaterMenu(syncId, inventory, container, burningData);
-        } else {
-            return null;
-        }
-    }
-
-    // Nameable
-
-    @Override
-    public Component getName() {
-        return name == null ? Component.translatable(CONTAINER_NAME) : name;
+    public int[] getSlotsForFace(Direction direction) {
+        return new int[] { 0 };
     }
 
     @Override
-    public Component getCustomName() {
-        return name;
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction direction) {
+        return canPlaceItem(slot, stack);
     }
 
-    public void setCustomName(Component name) {
-        this.name = name;
+    @Override
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction direction) {
+        return direction != Direction.DOWN || stack.is(Items.WATER_BUCKET) || stack.is(Items.BUCKET);
     }
 
     // Static

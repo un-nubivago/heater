@@ -2,17 +2,23 @@ package niv.heater.registry;
 
 import com.google.common.collect.ImmutableList;
 
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import niv.burning.api.BurningPropagator;
 import niv.burning.api.BurningStorage;
 import niv.burning.api.base.DelegatingBurningStorage;
+import niv.heater.block.entity.HeaterBlockEntity;
 
 public class HeaterRegistrar {
     private HeaterRegistrar() {
     }
 
     static {
+        ItemStorage.SIDED.registerForBlockEntity(
+                HeaterBlockEntity::getInventoryStorage,
+                HeaterBlockEntityTypes.HEATER);
+
         BurningStorage.SIDED.registerForBlockEntity(
                 (entity, side) -> entity.getBurningStorage(),
                 HeaterBlockEntityTypes.HEATER);
