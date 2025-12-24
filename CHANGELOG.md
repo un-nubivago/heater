@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
++ Updated `Burning` dependency to `2.0` to use the new `BurningPropagator` interface and logic.
+
 ## [4.0.7] - 2025-10-05
 
 ### Changed
