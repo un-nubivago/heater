@@ -1,5 +1,7 @@
 package niv.heater.block.entity;
 
+import static niv.burning.api.BurningContext.worldlyContext;
+
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.function.BiPredicate;
@@ -137,7 +139,8 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
 
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
-        return this.level.fuelValues().isFuel(stack) || stack.is(Items.BUCKET) && !this.items.get(0).is(Items.BUCKET);
+        return worldlyContext(this.level).isFuel(stack.getItem())
+                || stack.is(Items.BUCKET) && !this.items.get(0).is(Items.BUCKET);
     }
 
     // WorldlyContainer
