@@ -12,7 +12,7 @@
     ],
     "contact": {
         "homepage": "https://modrinth.com/mod/heater",
-        "sources": "https://github.com/NivOridocs/heater"
+        "sources": "https://github.com/un-nubivago/heater"
     },
     "license": "MIT",
     "icon": "assets/heater/icon.png",
