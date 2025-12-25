@@ -7,7 +7,6 @@ import static niv.heater.Heater.MOD_ID;
 
 import java.util.function.Function;
 
-import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -16,7 +15,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.WeatheringCopperBlocks;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import niv.heater.block.HeatPipeBlock;
 import niv.heater.block.HeaterBlock;
@@ -24,33 +22,31 @@ import niv.heater.block.ThermostatBlock;
 import niv.heater.block.WeatheringHeatPipeBlock;
 import niv.heater.block.WeatheringHeaterBlock;
 import niv.heater.block.WeatheringThermostatBlock;
+import niv.heater.util.WeatheringBlocks;
 
 public class HeaterBlocks {
     private HeaterBlocks() {
     }
 
-    public static final WeatheringCopperBlocks HEATER;
-    public static final WeatheringCopperBlocks HEAT_PIPE;
-    public static final WeatheringCopperBlocks THERMOSTAT;
+    public static final WeatheringBlocks HEATER;
+    public static final WeatheringBlocks HEAT_PIPE;
+    public static final WeatheringBlocks THERMOSTAT;
 
     static {
-        HEATER = WeatheringCopperBlocks.create(
+        HEATER = WeatheringBlocks.create(
                 "heater", HeaterBlocks::register,
                 HeaterBlock::new, WeatheringHeaterBlock::new,
-                weathering -> ofFullCopy(FURNACE));
-        OxidizableBlocksRegistry.registerCopperBlockSet(HEATER);
+                weathering -> ofFullCopy(FURNACE)).register();
 
-        HEAT_PIPE = WeatheringCopperBlocks.create(
+        HEAT_PIPE = WeatheringBlocks.create(
                 "heat_pipe", HeaterBlocks::register,
                 HeatPipeBlock::new, WeatheringHeatPipeBlock::new,
-                weathering -> ofFullCopy(COPPER_BLOCK));
-        OxidizableBlocksRegistry.registerCopperBlockSet(HEAT_PIPE);
+                weathering -> ofFullCopy(COPPER_BLOCK)).register();
 
-        THERMOSTAT = WeatheringCopperBlocks.create(
+        THERMOSTAT = WeatheringBlocks.create(
                 "thermostat", HeaterBlocks::register,
                 ThermostatBlock::new, WeatheringThermostatBlock::new,
-                weathering -> ofFullCopy(COPPER_BLOCK));
-        OxidizableBlocksRegistry.registerCopperBlockSet(THERMOSTAT);
+                weathering -> ofFullCopy(COPPER_BLOCK)).register();
     }
 
     private static final <T extends Block> T register(String name,

@@ -51,11 +51,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.WeatheringCopperBlocks;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import niv.heater.block.entity.HeaterBlockEntity;
 import niv.heater.registry.HeaterBlocks;
 import niv.heater.registry.HeaterTabs;
+import niv.heater.util.WeatheringBlocks;
 
 public class HeaterDataGenerator implements DataGeneratorEntrypoint {
 
@@ -242,7 +242,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             builder.add(HeaterTabs.TAB_NAME, Heater.MOD_NAME);
         }
 
-        private void addAll(TranslationBuilder builder, String name, WeatheringCopperBlocks blocks) {
+        private void addAll(TranslationBuilder builder, String name, WeatheringBlocks blocks) {
             builder.add(blocks.unaffected(), name);
             builder.add(blocks.exposed(), "Exposed " + name);
             builder.add(blocks.weathered(), "Weathered " + name);
@@ -319,7 +319,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
                     generateWaxingRecipe(exporter, HeaterBlocks.THERMOSTAT);
                 }
 
-                private void generateWaxingRecipe(RecipeOutput output, WeatheringCopperBlocks blocks) {
+                private void generateWaxingRecipe(RecipeOutput output, WeatheringBlocks blocks) {
                     blocks.waxedMapping().forEach((block, waxed) -> shapeless(RecipeCategory.MISC, waxed)
                             .requires(block).requires(Items.HONEYCOMB)
                             .unlockedBy(getHasName(block), has(block))
@@ -345,7 +345,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
                     .setReplace(false);
         }
 
-        private Stream<ResourceKey<Block>> getResourceKeys(WeatheringCopperBlocks blocks) {
+        private Stream<ResourceKey<Block>> getResourceKeys(WeatheringBlocks blocks) {
             var list = new ArrayList<Block>(8);
             blocks.forEach(list::add);
             return list.stream()
