@@ -3,17 +3,18 @@
 # certain platforms or Java versions, and provides a first line of defense
 # against bad commits.
 
-name: Heater Build Workflow
+name: Build Main
 on:
   push:
-    branches:
-      - release/**
+    tags:
+      - '*'
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -30,8 +31,7 @@ jobs:
       - name: Build
         run: |
           chmod +x ./gradlew
-          ./gradlew genSources
-          ./gradlew clean build
+          ./gradlew clean build -x test
 
       - name: Store Reports
         if: failure()
@@ -42,7 +42,17 @@ jobs:
             **/build/reports/
             **/build/test-results/
 
-      - name: Modrinth Deploy
+      - name: Update Modrinth Page
         run: |
-          ./gradlew modrinth
           ./gradlew modrinthSyncBody
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+        run: |
+          gh release create $tag ./build/libs/*.jar \
+              --draft --verify-tag \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Burning $tag" \
+              --notes "$(./CHANGELOG.sh)"
