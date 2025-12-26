@@ -230,7 +230,7 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     private static final void searchBurningStorages(Level level, BlockPos start,
             BiPredicate<BlockPos, BurningStorage> shallReturn) {
         var open = new LinkedList<Triple<Direction, BlockPos, Integer>>();
-        var closed = HashSet.newHashSet(64);
+        var closed = new HashSet<BlockPos>(64);
         closed.add(start);
 
         for (var elem = Triple.of((Direction) null, start, 64); elem != null; elem = open.poll()) {

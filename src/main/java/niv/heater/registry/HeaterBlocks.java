@@ -7,13 +7,13 @@ import static niv.heater.Heater.MOD_ID;
 
 import java.util.function.Function;
 
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import niv.heater.block.HeatPipeBlock;
@@ -58,7 +58,7 @@ public class HeaterBlocks {
 
         var itemKey = ResourceKey.create(Registries.ITEM, ResourceLocation.tryBuild(MOD_ID, name));
         Registry.register(BuiltInRegistries.ITEM, itemKey,
-                new BlockItem(block, new FabricItemSettings()));
+                new BlockItem(block, new Item.Properties()));
 
         return block;
     }
