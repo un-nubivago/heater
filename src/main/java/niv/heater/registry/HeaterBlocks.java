@@ -54,11 +54,11 @@ public class HeaterBlocks {
 
         var blockKey = ResourceKey.create(Registries.BLOCK, ResourceLocation.tryBuild(MOD_ID, name));
         var block = Registry.register(BuiltInRegistries.BLOCK, blockKey,
-                constructor.apply(properties.setId(blockKey)));
+                constructor.apply(properties));
 
         var itemKey = ResourceKey.create(Registries.ITEM, ResourceLocation.tryBuild(MOD_ID, name));
         Registry.register(BuiltInRegistries.ITEM, itemKey,
-                new BlockItem(block, new Item.Properties().useBlockDescriptionPrefix().setId(itemKey)));
+                new BlockItem(block, new Item.Properties()));
 
         return block;
     }

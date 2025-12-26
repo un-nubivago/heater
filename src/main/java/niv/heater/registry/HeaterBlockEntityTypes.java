@@ -2,7 +2,6 @@ package niv.heater.registry;
 
 import static niv.heater.Heater.MOD_ID;
 
-import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -19,7 +18,7 @@ public class HeaterBlockEntityTypes {
     static {
         HEATER = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
                 ResourceLocation.tryBuild(MOD_ID, "heater"),
-                FabricBlockEntityTypeBuilder.create(
+                BlockEntityType.Builder.of(
                         HeaterBlockEntity::new,
                         HeaterBlocks.HEATER.asList().toArray(Block[]::new))
                         .build());

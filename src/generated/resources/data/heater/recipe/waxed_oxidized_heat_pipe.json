@@ -2,8 +2,12 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    "heater:oxidized_heat_pipe",
-    "minecraft:honeycomb"
+    {
+      "item": "heater:oxidized_heat_pipe"
+    },
+    {
+      "item": "minecraft:honeycomb"
+    }
   ],
   "result": {
     "count": 1,

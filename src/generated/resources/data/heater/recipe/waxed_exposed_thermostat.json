@@ -2,8 +2,12 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    "heater:exposed_thermostat",
-    "minecraft:honeycomb"
+    {
+      "item": "heater:exposed_thermostat"
+    },
+    {
+      "item": "minecraft:honeycomb"
+    }
   ],
   "result": {
     "count": 1,

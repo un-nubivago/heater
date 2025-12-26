@@ -16,9 +16,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
@@ -98,7 +98,7 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
     private Direction[] getConnectedDirection(
             BlockState state, @Nullable RandomSource random) {
         var result = Direction.stream()
-                .filter(value -> state.getValueOrElse(PROPERTY_BY_DIRECTION.get(value), false).booleanValue())
+                .filter(value -> state.getOptionalValue(PROPERTY_BY_DIRECTION.get(value)).orElse(false).booleanValue())
                 .toArray(Direction[]::new);
 
         if (result.length >= 1 && random != null) {
@@ -121,7 +121,7 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
     }
 
     @Override
-    protected boolean propagatesSkylightDown(BlockState state) {
+    protected boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
         return !state.getValue(WATERLOGGED).booleanValue();
     }
 
@@ -153,11 +153,10 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
     }
 
     @Override
-    protected BlockState updateShape(
-            BlockState state, LevelReader level, ScheduledTickAccess scheduler, BlockPos pos,
-            Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
+    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
+            LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         if (state.getValue(WATERLOGGED).booleanValue()) {
-            scheduler.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+            level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
         }
         if (level instanceof Level world) {
             return state.trySetValue(PROPERTY_BY_DIRECTION.get(direction), canConnect(world, pos, direction));

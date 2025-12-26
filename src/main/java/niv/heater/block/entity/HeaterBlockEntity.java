@@ -12,7 +12,9 @@ import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
@@ -24,8 +26,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import niv.burning.api.FuelVariant;
 import niv.burning.api.base.BurningStorageBlockEntity;
 import niv.burning.api.base.SimpleBurningStorage;
@@ -134,8 +134,8 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
         fuelStack.shrink(1);
 
         if (fuelStack.isEmpty()) {
-            var bucketItem = fuelItem.getCraftingRemainder();
-            this.setItem(0, bucketItem == null ? ItemStack.EMPTY : bucketItem);
+            var bucketItem = fuelItem.getCraftingRemainingItem();
+            this.setItem(0, bucketItem == null ? ItemStack.EMPTY : new ItemStack(bucketItem));
         }
 
         return this.burningStorage.insert(resource, resource.getDuration(), transaction) > 0;
@@ -183,17 +183,17 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     // BlockEntity (override)
 
     @Override
-    protected void loadAdditional(ValueInput valueInput) {
-        super.loadAdditional(valueInput);
-        ContainerHelper.loadAllItems(valueInput, this.items);
-        SingleVariantStorage.readData(this.burningStorage, FuelVariant.CODEC, () -> FuelVariant.BLANK, valueInput);
+    protected void loadAdditional(CompoundTag compoundTag, Provider provider) {
+        super.loadAdditional(compoundTag, provider);
+        ContainerHelper.loadAllItems(compoundTag, items, provider);
+        SingleVariantStorage.readNbt(this.burningStorage, FuelVariant.CODEC, FuelVariant::blank, compoundTag, provider);
     }
 
     @Override
-    protected void saveAdditional(ValueOutput valueOutput) {
-        super.saveAdditional(valueOutput);
-        ContainerHelper.saveAllItems(valueOutput, this.items);
-        SingleVariantStorage.writeData(this.burningStorage, FuelVariant.CODEC, valueOutput);
+    protected void saveAdditional(CompoundTag compoundTag, Provider provider) {
+        super.saveAdditional(compoundTag, provider);
+        ContainerHelper.saveAllItems(compoundTag, this.items, provider);
+        SingleVariantStorage.writeNbt(this.burningStorage, FuelVariant.CODEC, compoundTag, provider);
     }
 
     @Override
