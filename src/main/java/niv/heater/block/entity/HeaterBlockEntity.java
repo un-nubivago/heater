@@ -182,13 +182,15 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     private static void statelessPropagation(
             Level level, BlockPos zero, BurningContext context, Transaction transaction) {
         var storages = new BurningStorage[] { null, null };
+        var threshold = new double[] { 1d };
 
         searchBurningStorages(level, zero, (pos, storage) -> {
             if (zero.equals(pos)) {
                 storages[0] = storage;
+                threshold[0] = storage.getBurning(context).getPercent();
             } else if (storage instanceof HeaterBurningStorage) {
                 // ignore
-            } else if (storage.supportsInsertion() && storage.getBurning(context).getPercent() <= .9) {
+            } else if (storage.supportsInsertion() && storage.getBurning(context).getPercent() <= threshold[0]) {
                 storages[1] = storage;
                 return true;
             }

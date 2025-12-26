@@ -119,11 +119,11 @@ public class HeatPipeBlock extends PipeBlock implements BurningPropagator, Simpl
     @Override
     public Set<Direction> evalPropagationTargets(Level level, BlockPos pos) {
         var ordinal = this.getAge().ordinal();
-        var power = ordinal == 0 ? 0 : (1 << ordinal - 1) - 1; // 0 : 0 1 3
+        var power = ordinal == 0 ? 0 : (1 << (ordinal - 1)); // 0 1 2 4
         return Direction.stream()
                 .filter(direction -> level.getBlockState(pos)
-                        .getValueOrElse(PROPERTY_BY_DIRECTION.get(direction), Boolean.FALSE))
-                .filter(direction -> ordinal == 0 || level.random.nextInt(64) <= power)
+                        .getOptionalValue(PROPERTY_BY_DIRECTION.get(direction)).orElse(Boolean.FALSE))
+                .filter(direction -> ordinal == 0 || level.random.nextInt(64) >= power)
                 .collect(Collectors.toCollection(() -> EnumSet.noneOf(Direction.class)));
     }
 }

@@ -7,6 +7,7 @@ import static net.minecraft.client.data.models.BlockModelGenerators.Y_ROT_180;
 import static net.minecraft.client.data.models.BlockModelGenerators.Y_ROT_270;
 import static net.minecraft.client.data.models.BlockModelGenerators.Y_ROT_90;
 import static net.minecraft.client.data.models.BlockModelGenerators.condition;
+import static net.minecraft.client.data.models.model.TexturedModel.ORIENTABLE_ONLY_TOP;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.DOWN;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.EAST;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT;
@@ -86,7 +87,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
 
         private static ModelTemplate create(String template, String suffix, TextureSlot... textureSlots) {
             return new ModelTemplate(
-                    Optional.of(ResourceLocation.fromNamespaceAndPath(MOD_ID, "block/" + template)),
+                    Optional.of(ResourceLocation.tryBuild(MOD_ID, "block/" + template)),
                     Optional.ofNullable(suffix),
                     textureSlots);
         }
@@ -99,16 +100,18 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
                 .select(Direction.DOWN, X_ROT_90)
                 .select(Direction.UP, X_ROT_270)
                 .select(Direction.NORTH, NOP)
+                .select(Direction.EAST, Y_ROT_90)
                 .select(Direction.SOUTH, Y_ROT_180)
-                .select(Direction.WEST, Y_ROT_270)
-                .select(Direction.EAST, Y_ROT_90);
+                .select(Direction.WEST, Y_ROT_270);
+
 
         private static final PropertyDispatch<VariantMutator> ROTATION_HORIZONTAL_FACING = PropertyDispatch
                 .modify(BlockStateProperties.HORIZONTAL_FACING)
+                .select(Direction.NORTH, NOP)
                 .select(Direction.EAST, Y_ROT_90)
                 .select(Direction.SOUTH, Y_ROT_180)
-                .select(Direction.WEST, Y_ROT_270)
-                .select(Direction.NORTH, NOP);
+                .select(Direction.WEST, Y_ROT_270);
+
 
         private static final TexturedModel.Provider THERMOSTAT = TexturedModel
                 .createDefault(HeaterModelProvider::orientableFullTilt, HeaterModelTemplates.THERMOSTAT);
@@ -119,11 +122,6 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
 
         public HeaterModelProvider(FabricDataOutput output) {
             super(output);
-        }
-
-        @Override
-        public String getName() {
-            return "Heater Block Provider";
         }
 
         @Override
@@ -142,10 +140,8 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
         }
 
         private static final void createWaxingFurnace(BlockModelGenerators generator, Block block, Block waxed) {
-            var provider = TexturedModel.ORIENTABLE_ONLY_TOP;
-
-            var unlit = BlockModelGenerators.plainVariant(provider.create(block, generator.modelOutput));
-            var lit = BlockModelGenerators.plainVariant(provider.get(block)
+            var unlit = BlockModelGenerators.plainVariant(ORIENTABLE_ONLY_TOP.create(block, generator.modelOutput));
+            var lit = BlockModelGenerators.plainVariant(ORIENTABLE_ONLY_TOP.get(block)
                     .updateTextures(mapping -> mapping.put(TextureSlot.FRONT,
                             TextureMapping.getBlockTexture(block, "_front_on")))
                     .createWithSuffix(block, "_on", generator.modelOutput));
@@ -175,8 +171,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
                     .dispatch(waxed, variant)
                     .with(ROTATION_FACING));
 
-            generator.registerSimpleItemModel(block, model);
-            generator.registerSimpleItemModel(waxed, model);
+            generator.itemModelOutput.copy(block.asItem(), waxed.asItem());
         }
 
         private static final void createWaxingPipe(BlockModelGenerators generator, Block block, Block waxed) {
@@ -268,65 +263,72 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
         }
     }
 
-    private static class HeaterRecipeProvider extends FabricRecipeProvider {
+    private static final class HeaterRecipeProvider extends FabricRecipeProvider {
 
-        private HeaterRecipeProvider(FabricDataOutput output, CompletableFuture<Provider> registriesFuture) {
+        public HeaterRecipeProvider(FabricDataOutput output, CompletableFuture<Provider> registriesFuture) {
             super(output, registriesFuture);
         }
 
         @Override
         public String getName() {
-            return "HeaterRecipeProvider";
+            return "Recipe";
         }
 
         @Override
-        protected RecipeProvider createRecipeProvider(Provider provider, RecipeOutput exporter) {
-            return new RecipeProvider(provider, exporter) {
-                @Override
-                public void buildRecipes() {
-                    shaped(RecipeCategory.MISC, HeaterBlocks.HEATER.unaffected())
-                            .pattern("ccc")
-                            .pattern("cfc")
-                            .pattern("ccc")
-                            .define('c', Items.COPPER_INGOT)
-                            .define('f', Items.FURNACE)
-                            .unlockedBy(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
-                            .unlockedBy(getHasName(Items.FURNACE), has(Items.FURNACE))
-                            .save(output);
+        protected RecipeProvider createRecipeProvider(Provider registryLookup, RecipeOutput exporter) {
+            return new InnerRecipeProvider(registryLookup, exporter);
+        }
+    }
 
-                    generateWaxingRecipe(exporter, HeaterBlocks.HEATER);
+    private static final class InnerRecipeProvider extends RecipeProvider {
 
-                    shaped(RecipeCategory.MISC, HeaterBlocks.HEAT_PIPE.unaffected())
-                            .pattern("ccc")
-                            .define('c', Items.COPPER_INGOT)
-                            .unlockedBy(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
-                            .save(output);
+        protected InnerRecipeProvider(Provider registries, RecipeOutput output) {
+            super(registries, output);
+        }
 
-                    generateWaxingRecipe(exporter, HeaterBlocks.HEAT_PIPE);
+        @Override
+        public void buildRecipes() {
+            shaped(RecipeCategory.MISC, HeaterBlocks.HEATER.unaffected())
+                    .pattern("ccc")
+                    .pattern("cfc")
+                    .pattern("ccc")
+                    .define('c', Items.COPPER_INGOT)
+                    .define('f', Items.FURNACE)
+                    .unlockedBy(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
+                    .unlockedBy(getHasName(Items.FURNACE), has(Items.FURNACE))
+                    .save(output);
 
-                    shaped(RecipeCategory.MISC, HeaterBlocks.THERMOSTAT.unaffected())
-                            .pattern("ccc")
-                            .pattern("#c#")
-                            .pattern("#r#")
-                            .define('c', Items.COPPER_INGOT)
-                            .define('r', Items.REDSTONE)
-                            .define('#', Items.COBBLESTONE)
-                            .unlockedBy(getHasName(Items.COBBLESTONE), has(Items.COBBLESTONE))
-                            .unlockedBy(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
-                            .unlockedBy(getHasName(Items.REDSTONE), has(Items.REDSTONE))
-                            .save(output);
+            generateWaxingRecipe(HeaterBlocks.HEATER);
 
-                    generateWaxingRecipe(exporter, HeaterBlocks.THERMOSTAT);
-                }
+            shaped(RecipeCategory.MISC, HeaterBlocks.HEAT_PIPE.unaffected())
+                    .pattern("ccc")
+                    .define('c', Items.COPPER_INGOT)
+                    .unlockedBy(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
+                    .save(output);
 
-                private void generateWaxingRecipe(RecipeOutput output, WeatheringBlocks blocks) {
-                    blocks.waxedMapping().forEach((block, waxed) -> shapeless(RecipeCategory.MISC, waxed)
-                            .requires(block).requires(Items.HONEYCOMB)
-                            .unlockedBy(getHasName(block), has(block))
-                            .unlockedBy(getHasName(Items.HONEYCOMB), has(Items.HONEYCOMB))
-                            .save(output));
-                }
-            };
+            generateWaxingRecipe(HeaterBlocks.HEAT_PIPE);
+
+            shaped(RecipeCategory.MISC, HeaterBlocks.THERMOSTAT.unaffected())
+                    .pattern("ccc")
+                    .pattern("#c#")
+                    .pattern("#r#")
+                    .define('c', Items.COPPER_INGOT)
+                    .define('r', Items.REDSTONE)
+                    .define('#', Items.COBBLESTONE)
+                    .unlockedBy(getHasName(Items.COBBLESTONE), has(Items.COBBLESTONE))
+                    .unlockedBy(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
+                    .unlockedBy(getHasName(Items.REDSTONE), has(Items.REDSTONE))
+                    .save(output);
+
+            generateWaxingRecipe(HeaterBlocks.THERMOSTAT);
+        }
+
+        private void generateWaxingRecipe(WeatheringBlocks blocks) {
+            blocks.waxedMapping().forEach((block, waxed) -> shapeless(RecipeCategory.MISC, waxed)
+                    .requires(block).requires(Items.HONEYCOMB)
+                    .unlockedBy(getHasName(block), has(block))
+                    .unlockedBy(getHasName(Items.HONEYCOMB), has(Items.HONEYCOMB))
+                    .save(output));
         }
     }
 

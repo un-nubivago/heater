@@ -33,7 +33,7 @@ public class HeaterRegistrar {
 
         BurningStorage.SIDED.registerForBlocks(
                 (level, pos, state, entity, side) -> {
-                    var facing = state.getValueOrElse(BlockStateProperties.FACING, null);
+                    var facing = state.getOptionalValue(BlockStateProperties.FACING).orElse(null);
                     if (facing == null || !level.hasNeighborSignal(pos))
                         return null;
 

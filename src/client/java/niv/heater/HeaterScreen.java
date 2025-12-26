@@ -35,7 +35,7 @@ public class HeaterScreen extends AbstractContainerScreen<HeaterMenu> {
         int y = this.topPos;
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, .0F, .0F, this.imageWidth, this.imageHeight, 256, 256);
         if (this.menu.isLit()) {
-            int h = Mth.ceil(this.menu.getLitProgress() * 13.0F) + 1;
+            int h = Mth.ceil(this.menu.getLitProgress() * 13f) + 1;
             guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, LIT_PROGRESS_SPRITE, 14, 14, 0, 14 - h, x + 80, y + 42 - h, 14, h);
         }
     }

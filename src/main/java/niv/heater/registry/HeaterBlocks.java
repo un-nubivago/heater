@@ -49,12 +49,12 @@ public class HeaterBlocks {
                 weathering -> ofFullCopy(COPPER_BLOCK)).register();
     }
 
-    private static final <T extends Block> T register(String name,
-            Function<Properties, T> constructor,
-            Properties properties) {
+    private static final <T extends Block> T register(
+            String name, Function<Properties, T> constructor, Properties properties) {
+
         var blockKey = ResourceKey.create(Registries.BLOCK, ResourceLocation.tryBuild(MOD_ID, name));
-        var block = constructor.apply(properties.setId(blockKey));
-        block = Registry.register(BuiltInRegistries.BLOCK, blockKey, block);
+        var block = Registry.register(BuiltInRegistries.BLOCK, blockKey,
+                constructor.apply(properties.setId(blockKey)));
 
         var itemKey = ResourceKey.create(Registries.ITEM, ResourceLocation.tryBuild(MOD_ID, name));
         Registry.register(BuiltInRegistries.ITEM, itemKey,

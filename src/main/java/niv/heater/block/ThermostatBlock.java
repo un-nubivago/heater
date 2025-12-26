@@ -69,7 +69,7 @@ public class ThermostatBlock extends DirectionalBlock implements BurningPropagat
         if (!level.hasNeighborSignal(pos))
             return EnumSet.noneOf(Direction.class);
 
-        var direction = level.getBlockState(pos).getValueOrElse(FACING, null);
+        var direction = level.getBlockState(pos).getOptionalValue(FACING).orElse(null);
         if (direction == null)
             return EnumSet.noneOf(Direction.class);
 
