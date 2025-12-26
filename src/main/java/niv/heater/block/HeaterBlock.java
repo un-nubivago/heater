@@ -1,14 +1,20 @@
 package niv.heater.block;
 
+import static niv.heater.registry.HeaterBlockEntityTypes.HEATER;
+
 import java.util.Set;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.Containers;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.WeatheringCopper;
@@ -74,6 +80,32 @@ public class HeaterBlock extends AbstractFurnaceBlock implements BurningPropagat
             double dz = axis == Direction.Axis.Z ? direction.getStepZ() * .52d : r;
             level.addParticle(ParticleTypes.SMOKE, x + dx, y + dy, z + dz, .0d, .0d, .0d);
         }
+    }
+
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        if (stack.hasCustomHoverName()) {
+            var heater = level.getBlockEntity(pos, HEATER).orElse(null);
+            if (heater != null)
+                heater.setCustomName(stack.getHoverName());
+        }
+    }
+
+    @Override
+    @SuppressWarnings("java:S1874")
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (state.getBlock() instanceof HeaterBlock && newState.getBlock() instanceof HeaterBlock)
+            return;
+
+        var heater = level.getBlockEntity(pos, HEATER).orElse(null);
+        if (heater != null) {
+            if (level instanceof ServerLevel)
+                Containers.dropContents(level, pos, heater);
+            level.updateNeighbourForOutputSignal(pos, this);
+        }
+
+        if (state.hasBlockEntity() && !state.is(newState.getBlock()))
+            level.removeBlockEntity(pos);
     }
 
     // BurningPropagator
