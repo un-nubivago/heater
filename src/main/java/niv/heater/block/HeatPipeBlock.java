@@ -6,15 +6,12 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
@@ -31,11 +28,8 @@ import niv.heater.registry.HeaterBlocks;
 
 public class HeatPipeBlock extends PipeBlock implements BurningPropagator, SimpleWaterloggedBlock {
 
-    @SuppressWarnings("java:S1845")
-    public static final MapCodec<HeatPipeBlock> CODEC = simpleCodec(HeatPipeBlock::new);
-
     public HeatPipeBlock(Properties settings) {
-        super(6.0F, settings);
+        super(.1875F, settings);
         this.registerDefaultState(stateDefinition.any()
                 .setValue(DOWN, false)
                 .setValue(UP, false)
@@ -54,12 +48,7 @@ public class HeatPipeBlock extends PipeBlock implements BurningPropagator, Simpl
     // PipeBlock
 
     @Override
-    public MapCodec<? extends HeatPipeBlock> codec() {
-        return CODEC;
-    }
-
-    @Override
-    protected boolean propagatesSkylightDown(BlockState state) {
+    public boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
         return !state.getValue(WATERLOGGED).booleanValue();
     }
 
@@ -72,7 +61,7 @@ public class HeatPipeBlock extends PipeBlock implements BurningPropagator, Simpl
     }
 
     @Override
-    protected boolean isPathfindable(BlockState state, PathComputationType type) {
+    public boolean isPathfindable(BlockState state, BlockGetter level, BlockPos pos, PathComputationType type) {
         return false;
     }
 
@@ -91,11 +80,10 @@ public class HeatPipeBlock extends PipeBlock implements BurningPropagator, Simpl
     }
 
     @Override
-    protected BlockState updateShape(
-            BlockState state, LevelReader level, ScheduledTickAccess scheduler, BlockPos pos,
-            Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
+    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level,
+            BlockPos pos, BlockPos neighborPos) {
         if (state.getValue(WATERLOGGED).booleanValue()) {
-            scheduler.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+            level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
         }
         if (level instanceof Level world) {
             return state.trySetValue(PROPERTY_BY_DIRECTION.get(direction), canConnect(world, pos, direction));

@@ -2,18 +2,18 @@ package niv.heater.registry;
 
 import static net.minecraft.world.level.block.Blocks.COPPER_BLOCK;
 import static net.minecraft.world.level.block.Blocks.FURNACE;
-import static net.minecraft.world.level.block.state.BlockBehaviour.Properties.ofFullCopy;
+import static net.minecraft.world.level.block.state.BlockBehaviour.Properties.copy;
 import static niv.heater.Heater.MOD_ID;
 
 import java.util.function.Function;
 
+import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import niv.heater.block.HeatPipeBlock;
@@ -36,17 +36,17 @@ public class HeaterBlocks {
         HEATER = WeatheringBlocks.create(
                 "heater", HeaterBlocks::register,
                 HeaterBlock::new, WeatheringHeaterBlock::new,
-                weathering -> ofFullCopy(FURNACE)).register();
+                weathering -> copy(FURNACE)).register();
 
         HEAT_PIPE = WeatheringBlocks.create(
                 "heat_pipe", HeaterBlocks::register,
                 HeatPipeBlock::new, WeatheringHeatPipeBlock::new,
-                weathering -> ofFullCopy(COPPER_BLOCK)).register();
+                weathering -> copy(COPPER_BLOCK)).register();
 
         THERMOSTAT = WeatheringBlocks.create(
                 "thermostat", HeaterBlocks::register,
                 ThermostatBlock::new, WeatheringThermostatBlock::new,
-                weathering -> ofFullCopy(COPPER_BLOCK)).register();
+                weathering -> copy(COPPER_BLOCK)).register();
     }
 
     private static final <T extends Block> T register(
@@ -54,11 +54,11 @@ public class HeaterBlocks {
 
         var blockKey = ResourceKey.create(Registries.BLOCK, ResourceLocation.tryBuild(MOD_ID, name));
         var block = Registry.register(BuiltInRegistries.BLOCK, blockKey,
-                constructor.apply(properties.setId(blockKey)));
+                constructor.apply(properties));
 
         var itemKey = ResourceKey.create(Registries.ITEM, ResourceLocation.tryBuild(MOD_ID, name));
         Registry.register(BuiltInRegistries.ITEM, itemKey,
-                new BlockItem(block, new Item.Properties().useBlockDescriptionPrefix().setId(itemKey)));
+                new BlockItem(block, new FabricItemSettings()));
 
         return block;
     }

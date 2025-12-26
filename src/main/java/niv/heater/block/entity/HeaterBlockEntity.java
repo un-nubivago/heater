@@ -1,7 +1,5 @@
 package niv.heater.block.entity;
 
-import static niv.burning.api.BurningContext.worldlyContext;
-
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.function.BiPredicate;
@@ -17,18 +15,19 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import niv.burning.api.Burning;
 import niv.burning.api.BurningContext;
 import niv.burning.api.BurningPropagator;
@@ -68,8 +67,8 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
             if (burning != null) {
                 fuelStack.shrink(1);
                 if (fuelStack.isEmpty()) {
-                    var bucketItem = fuelItem.getCraftingRemainder();
-                    this.setItem(0, bucketItem == null ? ItemStack.EMPTY : bucketItem);
+                    var bucketItem = fuelItem.getCraftingRemainingItem();
+                    this.setItem(0, bucketItem == null ? ItemStack.EMPTY : new ItemStack(bucketItem));
                 }
                 this.burningStorage.insert(burning.one(), context, transaction);
             }
@@ -91,23 +90,8 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     // BaseContainerBlockEntity (required)
 
     @Override
-    public int getContainerSize() {
-        return 1;
-    }
-
-    @Override
     protected Component getDefaultName() {
         return DEFAULT_NAME.get();
-    }
-
-    @Override
-    protected NonNullList<ItemStack> getItems() {
-        return this.items;
-    }
-
-    @Override
-    protected void setItems(NonNullList<ItemStack> items) {
-        this.items = items;
     }
 
     @Override
@@ -118,29 +102,23 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     // BlockEntity (override)
 
     @Override
-    protected void loadAdditional(ValueInput valueInput) {
-        super.loadAdditional(valueInput);
-        ContainerHelper.loadAllItems(valueInput, this.items);
-        this.burningStorage.load(valueInput);
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        ContainerHelper.loadAllItems(tag, this.items);
+        this.burningStorage.load(tag);
     }
 
     @Override
-    protected void saveAdditional(ValueOutput valueOutput) {
-        super.saveAdditional(valueOutput);
-        ContainerHelper.saveAllItems(valueOutput, this.items);
-        this.burningStorage.save(valueOutput);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        ContainerHelper.saveAllItems(tag, this.items);
+        this.burningStorage.save(tag);
     }
 
     @Override
     public void setChanged() {
         BurningStorageBlockEntity.tryUpdateLitProperty(this, this.burningStorage);
         super.setChanged();
-    }
-
-    @Override
-    public boolean canPlaceItem(int slot, ItemStack stack) {
-        return worldlyContext(this.level).isFuel(stack.getItem())
-                || stack.is(Items.BUCKET) && !this.items.get(0).is(Items.BUCKET);
     }
 
     // WorldlyContainer
@@ -158,6 +136,55 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     @Override
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction direction) {
         return direction != Direction.DOWN || stack.is(Items.WATER_BUCKET) || stack.is(Items.BUCKET);
+    }
+
+    // Container
+
+    @Override
+    public int getContainerSize() {
+        return 1;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        for (var stack : this.items)
+            if (stack.isEmpty())
+                return false;
+        return true;
+    }
+
+    @Override
+    public ItemStack getItem(int slot) {
+        return this.items.get(slot);
+    }
+
+    @Override
+    public ItemStack removeItem(int slot, int amount) {
+        var stack = ContainerHelper.removeItem(this.items, slot, amount);
+        if (!stack.isEmpty())
+            this.setChanged();
+        return stack;
+    }
+
+    @Override
+    public ItemStack removeItemNoUpdate(int slot) {
+        return ContainerHelper.takeItem(this.items, slot);
+    }
+
+    @Override
+    public void setItem(int slot, ItemStack stack) {
+        this.items.set(slot, stack);
+        this.setChanged();
+    }
+
+    @Override
+    public void clearContent() {
+        this.items.clear();
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return Container.stillValidBlockEntity(this, player);
     }
 
     // Static

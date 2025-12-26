@@ -7,7 +7,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -16,7 +15,6 @@ import niv.heater.screen.HeaterMenu;
 
 @Environment(EnvType.CLIENT)
 public class HeaterScreen extends AbstractContainerScreen<HeaterMenu> {
-    private static final ResourceLocation LIT_PROGRESS_SPRITE = tryBuild(MOD_ID, "container/heater/lit_progress");
     private static final ResourceLocation TEXTURE = tryBuild(MOD_ID, "textures/gui/container/heater.png");
 
     public HeaterScreen(HeaterMenu menu, Inventory inventory, Component title) {
@@ -30,13 +28,27 @@ public class HeaterScreen extends AbstractContainerScreen<HeaterMenu> {
     }
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float delta, int mouseX, int mouseY) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        this.renderBackground(guiGraphics);
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        this.renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    @Override
+    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         int x = this.leftPos;
         int y = this.topPos;
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, .0F, .0F, this.imageWidth, this.imageHeight, 256, 256);
+        guiGraphics.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
         if (this.menu.isLit()) {
             int h = Mth.ceil(this.menu.getLitProgress() * 13f) + 1;
-            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, LIT_PROGRESS_SPRITE, 14, 14, 0, 14 - h, x + 80, y + 42 - h, 14, h);
+            guiGraphics.blit(TEXTURE, x + 80, y + 39 - h, 176, 12 - h, 14, h + 1);
         }
+    }
+
+    @Override
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop, int mouseButton) {
+        return mouseX < guiLeft || mouseY < guiTop
+                || mouseX >= guiLeft + this.imageWidth
+                || mouseY >= guiTop + this.imageHeight;
     }
 }

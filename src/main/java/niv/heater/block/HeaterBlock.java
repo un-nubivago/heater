@@ -2,8 +2,6 @@ package niv.heater.block;
 
 import java.util.Set;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -26,9 +24,6 @@ import niv.heater.registry.HeaterBlocks;
 
 public class HeaterBlock extends AbstractFurnaceBlock implements BurningPropagator {
 
-    @SuppressWarnings("java:S1845")
-    public static final MapCodec<HeaterBlock> CODEC = simpleCodec(HeaterBlock::new);
-
     public HeaterBlock(Properties properties) {
         super(properties);
     }
@@ -39,11 +34,6 @@ public class HeaterBlock extends AbstractFurnaceBlock implements BurningPropagat
     }
 
     // AbstractFurnaceBlock
-
-    @Override
-    public MapCodec<? extends HeaterBlock> codec() {
-        return CODEC;
-    }
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {

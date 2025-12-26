@@ -3,8 +3,6 @@ package niv.heater.block;
 import java.util.EnumSet;
 import java.util.Set;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -22,9 +20,6 @@ import niv.heater.registry.HeaterBlocks;
 
 public class ThermostatBlock extends DirectionalBlock implements BurningPropagator {
 
-    @SuppressWarnings("java:S1845")
-    public static final MapCodec<ThermostatBlock> CODEC = simpleCodec(ThermostatBlock::new);
-
     public ThermostatBlock(Properties settings) {
         super(settings);
     }
@@ -35,11 +30,6 @@ public class ThermostatBlock extends DirectionalBlock implements BurningPropagat
     }
 
     // DirectionalBlock
-
-    @Override
-    public MapCodec<? extends ThermostatBlock> codec() {
-        return CODEC;
-    }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
