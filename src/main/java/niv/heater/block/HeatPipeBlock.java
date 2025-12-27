@@ -41,7 +41,7 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
     private static final ThreadLocal<Set<Pair<Level, BlockPos>>> EXPLORED_SET = ThreadLocal.withInitial(HashSet::new);
 
     public HeatPipeBlock(Properties settings) {
-        super(6.0F, settings);
+        super(.1875F, settings);
         this.registerDefaultState(stateDefinition.any()
                 .setValue(DOWN, false)
                 .setValue(UP, false)
