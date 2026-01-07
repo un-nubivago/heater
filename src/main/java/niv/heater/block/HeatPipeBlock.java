@@ -2,10 +2,6 @@ package niv.heater.block;
 
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED;
 
-import java.util.EnumSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
@@ -25,11 +21,10 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.pathfinder.PathComputationType;
-import niv.burning.api.BurningPropagator;
 import niv.burning.api.BurningStorage;
 import niv.heater.registry.HeaterBlocks;
 
-public class HeatPipeBlock extends PipeBlock implements BurningPropagator, SimpleWaterloggedBlock {
+public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
 
     @SuppressWarnings("java:S1845")
     public static final MapCodec<HeatPipeBlock> CODEC = simpleCodec(HeatPipeBlock::new);
@@ -105,25 +100,11 @@ public class HeatPipeBlock extends PipeBlock implements BurningPropagator, Simpl
     }
 
     private boolean canConnect(Level level, BlockPos pos, Direction direction) {
-        return BurningPropagator.SIDED.find(level, pos.relative(direction), direction.getOpposite()) != null
-                || BurningStorage.SIDED.find(level, pos.relative(direction), direction.getOpposite()) != null;
+        return BurningStorage.SIDED.find(level, pos.relative(direction), direction.getOpposite()) != null;
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(DOWN, UP, NORTH, SOUTH, WEST, EAST, WATERLOGGED);
-    }
-
-    // BurningPropagator
-
-    @Override
-    public Set<Direction> evalPropagationTargets(Level level, BlockPos pos) {
-        var ordinal = this.getAge().ordinal();
-        var power = ordinal == 0 ? 0 : (1 << (ordinal - 1)); // 0 1 2 4
-        return Direction.stream()
-                .filter(direction -> level.getBlockState(pos)
-                        .getOptionalValue(PROPERTY_BY_DIRECTION.get(direction)).orElse(Boolean.FALSE))
-                .filter(direction -> ordinal == 0 || level.random.nextInt(64) >= power)
-                .collect(Collectors.toCollection(() -> EnumSet.noneOf(Direction.class)));
     }
 }

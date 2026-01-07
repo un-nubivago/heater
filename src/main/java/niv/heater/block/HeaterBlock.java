@@ -1,7 +1,5 @@
 package niv.heater.block;
 
-import java.util.Set;
-
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
@@ -19,12 +17,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import niv.burning.api.BurningPropagator;
 import niv.heater.block.entity.HeaterBlockEntity;
 import niv.heater.registry.HeaterBlockEntityTypes;
 import niv.heater.registry.HeaterBlocks;
 
-public class HeaterBlock extends AbstractFurnaceBlock implements BurningPropagator {
+public class HeaterBlock extends AbstractFurnaceBlock {
 
     @SuppressWarnings("java:S1845")
     public static final MapCodec<HeaterBlock> CODEC = simpleCodec(HeaterBlock::new);
@@ -84,12 +81,5 @@ public class HeaterBlock extends AbstractFurnaceBlock implements BurningPropagat
             double dz = axis == Direction.Axis.Z ? direction.getStepZ() * .52d : r;
             level.addParticle(ParticleTypes.SMOKE, x + dx, y + dy, z + dz, .0d, .0d, .0d);
         }
-    }
-
-    // BurningPropagator
-
-    @Override
-    public Set<Direction> evalPropagationTargets(Level level, BlockPos pos) {
-        return Set.of(Direction.values());
     }
 }

@@ -25,9 +25,9 @@ public class HeaterBurningStorage extends SimpleBurningStorage implements Contai
     public int get(int index) {
         switch (index) {
             case 0:
-                return this.getCurrentBurning();
+                return (int) this.getAmount();
             case 1:
-                return this.getMaxBurning();
+                return (int) this.getCapacity();
             default:
                 throw new IndexOutOfBoundsException(index);
         }
@@ -37,11 +37,10 @@ public class HeaterBurningStorage extends SimpleBurningStorage implements Contai
     public void set(int index, int value) {
         switch (index) {
             case 0:
-                this.setCurrentBurning(value);
+                this.amount = value;
                 break;
             case 1:
-                this.setMaxBurning(value);
-                break;
+                throw new UnsupportedOperationException();
             default:
                 throw new IndexOutOfBoundsException(index);
         }
