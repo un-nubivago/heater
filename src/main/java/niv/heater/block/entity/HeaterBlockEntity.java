@@ -18,6 +18,7 @@ import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -27,10 +28,10 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import niv.burning.api.FuelVariant;
 import niv.burning.api.base.BurningStorageBlockEntity;
+import niv.burning.api.base.SimpleBurningStorage;
 import niv.heater.block.HeaterBlock;
 import niv.heater.registry.HeaterBlockEntityTypes;
 import niv.heater.screen.HeaterMenu;
-import niv.heater.util.HeaterBurningStorage;
 
 public class HeaterBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
 
@@ -39,7 +40,49 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     private static final Supplier<Component> DEFAULT_NAME = Suppliers
             .memoize(() -> Component.translatable(CONTAINER_NAME));
 
-    private final HeaterBurningStorage burningStorage = new HeaterBurningStorage(this);
+    private final SingleVariantStorage<FuelVariant> burningStorage = new SimpleBurningStorage() {
+        @Override
+        public boolean supportsInsertion() {
+            return false;
+        }
+
+        @Override
+        protected void onFinalCommit() {
+            HeaterBlockEntity.this.setChanged();
+        }
+    };
+
+    private final ContainerData burningData = new ContainerData() {
+        @Override
+        public int getCount() {
+            return 2;
+        }
+
+        @Override
+        public int get(int index) {
+            switch (index) {
+                case 0:
+                    return (int) HeaterBlockEntity.this.burningStorage.getAmount();
+                case 1:
+                    return (int) HeaterBlockEntity.this.burningStorage.getCapacity();
+                default:
+                    throw new IndexOutOfBoundsException(index);
+            }
+        }
+
+        @Override
+        public void set(int index, int value) {
+            switch (index) {
+                case 0:
+                    HeaterBlockEntity.this.burningStorage.amount = value;
+                    break;
+                case 1:
+                    throw new UnsupportedOperationException();
+                default:
+                    throw new IndexOutOfBoundsException(index);
+            }
+        }
+    };
 
     private final InventoryStorage[] wrappers = new InventoryStorage[7];
 
@@ -53,20 +96,49 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
         return this.burningStorage.getCapacity() > 0;
     }
 
-    private void consumeFuel(Transaction transaction) {
-        var fuelStack = this.getItem(0);
-        if (!this.isBurning() && !fuelStack.isEmpty()) {
-            var fuelItem = fuelStack.getItem();
-            var resource = FuelVariant.of(fuelItem);
-            if (!resource.isBlank()) {
-                fuelStack.shrink(1);
-                if (fuelStack.isEmpty()) {
-                    var bucketItem = fuelItem.getCraftingRemainder();
-                    this.setItem(0, bucketItem == null ? ItemStack.EMPTY : bucketItem);
-                }
-                this.burningStorage.insert(resource, resource.getDuration(), transaction);
-            }
+    private void tick(Level level, BlockPos pos, BlockState state) {
+        try (var transaction = Transaction.openOuter()) {
+            tryPropagate(level, pos, (HeaterBlock) state.getBlock(), transaction);
+            tryConsumeFuel(transaction);
+            transaction.commit();
         }
+    }
+
+    private boolean tryPropagate(Level level, BlockPos pos, HeaterBlock block, Transaction transaction) {
+        var resource = this.burningStorage.getResource();
+        var amount = this.burningStorage.getAmount();
+
+        if (resource.isBlank() || this.burningStorage.getAmount() <= 0)
+            return false;
+
+        try (var nested = Transaction.openNested(transaction)) {
+            var accepted = block.getStatelessStorage(level, pos).insert(resource, amount, nested);
+            if (this.burningStorage.extract(resource, accepted, nested) == accepted)
+                nested.commit();
+        }
+        return true;
+    }
+
+    private boolean tryConsumeFuel(Transaction transaction) {
+        var fuelStack = this.getItem(0);
+
+        if (this.isBurning() || fuelStack.isEmpty())
+            return false;
+
+        var fuelItem = fuelStack.getItem();
+        var resource = FuelVariant.of(fuelItem);
+
+        if (resource.isBlank())
+            return false;
+
+        fuelStack.shrink(1);
+
+        if (fuelStack.isEmpty()) {
+            var bucketItem = fuelItem.getCraftingRemainder();
+            this.setItem(0, bucketItem == null ? ItemStack.EMPTY : bucketItem);
+        }
+
+        return this.burningStorage.insert(resource, resource.getDuration(), transaction) > 0;
     }
 
     public Storage<FuelVariant> getBurningStorage() {
@@ -105,7 +177,7 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
 
     @Override
     protected AbstractContainerMenu createMenu(int syncId, Inventory inventory) {
-        return new HeaterMenu(syncId, inventory, this, this.burningStorage);
+        return new HeaterMenu(syncId, inventory, this, this.burningData);
     }
 
     // BlockEntity (override)
@@ -157,16 +229,6 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     // Static
 
     public static void tick(Level level, BlockPos pos, BlockState state, HeaterBlockEntity heater) {
-        try (var transaction = Transaction.openOuter()) {
-            if (heater.isBurning()) {
-                // TODO Propagation
-            }
-
-            if (heater.isBurning() && state.getBlock() instanceof HeaterBlock block)
-                heater.burningStorage.extract(heater.burningStorage.variant, block.getAge().ordinal(), transaction);
-
-            heater.consumeFuel(transaction);
-            transaction.commit();
-        }
+        heater.tick(level, pos, state);
     }
 }

@@ -1,7 +1,11 @@
 package niv.heater.block;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.mojang.serialization.MapCodec;
 
+import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -17,6 +21,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import niv.burning.api.BurningStorage;
+import niv.burning.api.FuelVariant;
 import niv.heater.block.entity.HeaterBlockEntity;
 import niv.heater.registry.HeaterBlockEntityTypes;
 import niv.heater.registry.HeaterBlocks;
@@ -33,6 +39,41 @@ public class HeaterBlock extends AbstractFurnaceBlock {
     public WeatherState getAge() {
         return ((WeatheringCopper) HeaterBlocks.HEATER.waxedMapping().inverse()
                 .getOrDefault(this, HeaterBlocks.HEATER.unaffected())).getAge();
+    }
+
+    public InsertionOnlyStorage<FuelVariant> getStatelessStorage(Level level, BlockPos pos) {
+        return (resource, maxAmount, transaction) -> {
+            StoragePreconditions.notBlankNotNegative(resource, maxAmount);
+
+            var inserted = this.getAge().ordinal();
+
+            if (inserted >= maxAmount)
+                return maxAmount;
+
+            var dirs = getConnectedDirection(level.random);
+
+            for (int i = 0; i < dirs.length && inserted < maxAmount; i++) {
+                var dir = dirs[i];
+                var storage = BurningStorage.SIDED.find(level, pos.relative(dir), dir.getOpposite());
+                if (storage != null && storage.supportsInsertion())
+                    inserted += storage.insert(resource, maxAmount - inserted, transaction);
+            }
+
+            return inserted;
+        };
+    }
+
+    private Direction[] getConnectedDirection(@Nullable RandomSource random) {
+        var result = Direction.values();
+        if (result.length >= 1 && random != null) {
+            for (var i = result.length - 1; i > 0; i--) {
+                var j = random.nextInt(i + 1);
+                var dir = result[i];
+                result[i] = result[j];
+                result[j] = dir;
+            }
+        }
+        return result;
     }
 
     // AbstractFurnaceBlock
