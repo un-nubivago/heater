@@ -1,13 +1,10 @@
 package niv.heater.registry;
 
-import com.google.common.collect.ImmutableList;
-
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import niv.burning.api.BurningPropagator;
 import niv.burning.api.BurningStorage;
-import niv.burning.api.base.DelegatingBurningStorage;
+import niv.heater.block.HeatPipeBlock;
+import niv.heater.block.ThermostatBlock;
 import niv.heater.block.entity.HeaterBlockEntity;
 
 public class HeaterRegistrar {
@@ -23,26 +20,16 @@ public class HeaterRegistrar {
                 (entity, side) -> entity.getBurningStorage(),
                 HeaterBlockEntityTypes.HEATER);
 
-        BurningPropagator.SIDED.registerForBlocks(
-                (level, pos, state, entity, side) -> (BurningPropagator) state.getBlock(),
-                ImmutableList.builder()
-                        .addAll(HeaterBlocks.HEATER.asList())
-                        .addAll(HeaterBlocks.HEAT_PIPE.asList())
-                        .addAll(HeaterBlocks.THERMOSTAT.asList())
-                        .build().toArray(Block[]::new));
+        BurningStorage.SIDED.registerForBlocks(
+                (level, pos, state, entity, side) -> state.getBlock() instanceof HeatPipeBlock block
+                        ? block.getStatelessStorage(level, pos, state)
+                        : null,
+                HeaterBlocks.HEAT_PIPE.asList().toArray(Block[]::new));
 
         BurningStorage.SIDED.registerForBlocks(
-                (level, pos, state, entity, side) -> {
-                    var facing = state.getOptionalValue(BlockStateProperties.FACING).orElse(null);
-                    if (facing == null || !level.hasNeighborSignal(pos))
-                        return null;
-
-                    var heater = level.getBlockEntity(pos.relative(facing), HeaterBlockEntityTypes.HEATER).orElse(null);
-                    if (heater == null)
-                        return null;
-
-                    return new DelegatingBurningStorage(heater.getBurningStorage(), null);
-                },
+                (level, pos, state, entity, side) -> state.getBlock() instanceof ThermostatBlock block
+                        ? block.getStatelessStorage(level, pos, state, side)
+                        : null,
                 HeaterBlocks.THERMOSTAT.asList().toArray(Block[]::new));
     }
 

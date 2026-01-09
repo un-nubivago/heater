@@ -1,7 +1,5 @@
 package niv.heater.screen;
 
-import static niv.burning.api.BurningContext.worldlyContext;
-
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -13,7 +11,7 @@ import net.minecraft.world.inventory.FurnaceFuelSlot;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import niv.burning.api.BurningContext;
+import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import niv.heater.registry.HeaterMenus;
 
 public class HeaterMenu extends AbstractContainerMenu {
@@ -35,7 +33,7 @@ public class HeaterMenu extends AbstractContainerMenu {
         this.container = container;
         this.containerData = containerData;
 
-        addSlot(new HeaterFuelSlot(container, 0, 80, 44, worldlyContext(inventory.player.level())));
+        addSlot(new HeaterFuelSlot(container, 0, 80, 44));
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 9; j++) {
@@ -95,18 +93,15 @@ public class HeaterMenu extends AbstractContainerMenu {
         return Mth.clamp(this.containerData.get(0) / i, 0f, 1f);
     }
 
-    private static final class HeaterFuelSlot extends Slot {
+    private final class HeaterFuelSlot extends Slot {
 
-        private final BurningContext context;
-
-        public HeaterFuelSlot(Container container, int slot, int x, int y, BurningContext context) {
+        public HeaterFuelSlot(Container container, int slot, int x, int y) {
             super(container, slot, x, y);
-            this.context = context;
         }
 
         @Override
         public boolean mayPlace(ItemStack stack) {
-            return this.context.isFuel(stack.getItem()) || FurnaceFuelSlot.isBucket(stack);
+            return AbstractFurnaceBlockEntity.isFuel(stack) || FurnaceFuelSlot.isBucket(stack);
         }
 
         @Override

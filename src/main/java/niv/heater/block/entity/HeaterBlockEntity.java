@@ -1,42 +1,40 @@
 package niv.heater.block.entity;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 
-import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.Nullable;
 
 import com.google.common.base.Suppliers;
 
 import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import niv.burning.api.Burning;
-import niv.burning.api.BurningContext;
-import niv.burning.api.BurningPropagator;
-import niv.burning.api.BurningStorage;
+import niv.burning.api.FuelVariant;
 import niv.burning.api.base.BurningStorageBlockEntity;
+import niv.burning.api.base.SimpleBurningStorage;
 import niv.heater.block.HeaterBlock;
 import niv.heater.registry.HeaterBlockEntityTypes;
 import niv.heater.screen.HeaterMenu;
-import niv.heater.util.HeaterBurningStorage;
 
 public class HeaterBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
 
@@ -45,7 +43,49 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     private static final Supplier<Component> DEFAULT_NAME = Suppliers
             .memoize(() -> Component.translatable(CONTAINER_NAME));
 
-    private final HeaterBurningStorage burningStorage = new HeaterBurningStorage(this);
+    private final SingleVariantStorage<FuelVariant> burningStorage = new SimpleBurningStorage() {
+        @Override
+        public boolean supportsInsertion() {
+            return false;
+        }
+
+        @Override
+        protected void onFinalCommit() {
+            HeaterBlockEntity.this.setChanged();
+        }
+    };
+
+    private final ContainerData burningData = new ContainerData() {
+        @Override
+        public int getCount() {
+            return 2;
+        }
+
+        @Override
+        public int get(int index) {
+            switch (index) {
+                case 0:
+                    return (int) HeaterBlockEntity.this.burningStorage.getAmount();
+                case 1:
+                    return (int) HeaterBlockEntity.this.burningStorage.getCapacity();
+                default:
+                    throw new IndexOutOfBoundsException(index);
+            }
+        }
+
+        @Override
+        public void set(int index, int value) {
+            switch (index) {
+                case 0:
+                    HeaterBlockEntity.this.burningStorage.amount = value;
+                    break;
+                case 1:
+                    throw new UnsupportedOperationException();
+                default:
+                    throw new IndexOutOfBoundsException(index);
+            }
+        }
+    };
 
     private final InventoryStorage[] wrappers = new InventoryStorage[7];
 
@@ -56,26 +96,55 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     }
 
     public boolean isBurning() {
-        return this.burningStorage.getCurrentBurning() > 0;
+        return this.burningStorage.getCapacity() > 0;
     }
 
-    private void consumeFuel(BurningContext context, Transaction transaction) {
-        var fuelStack = this.getItem(0);
-        if (!this.isBurning() && !fuelStack.isEmpty()) {
-            var fuelItem = fuelStack.getItem();
-            var burning = Burning.of(fuelItem, context);
-            if (burning != null) {
-                fuelStack.shrink(1);
-                if (fuelStack.isEmpty()) {
-                    var bucketItem = fuelItem.getCraftingRemainingItem();
-                    this.setItem(0, bucketItem == null ? ItemStack.EMPTY : new ItemStack(bucketItem));
-                }
-                this.burningStorage.insert(burning.one(), context, transaction);
-            }
+    private void tick(Level level, BlockPos pos, BlockState state) {
+        try (var transaction = Transaction.openOuter()) {
+            tryPropagate(level, pos, (HeaterBlock) state.getBlock(), transaction);
+            tryConsumeFuel(transaction);
+            transaction.commit();
         }
     }
 
-    public BurningStorage getBurningStorage() {
+    private boolean tryPropagate(Level level, BlockPos pos, HeaterBlock block, Transaction transaction) {
+        var resource = this.burningStorage.getResource();
+        var amount = this.burningStorage.getAmount();
+
+        if (resource.isBlank() || this.burningStorage.getAmount() <= 0)
+            return false;
+
+        try (var nested = Transaction.openNested(transaction)) {
+            var accepted = block.getStatelessStorage(level, pos).insert(resource, amount, nested);
+            if (this.burningStorage.extract(resource, accepted, nested) == accepted)
+                nested.commit();
+        }
+        return true;
+    }
+
+    private boolean tryConsumeFuel(Transaction transaction) {
+        var fuelStack = this.getItem(0);
+
+        if (this.isBurning() || fuelStack.isEmpty())
+            return false;
+
+        var fuelItem = fuelStack.getItem();
+        var resource = FuelVariant.of(fuelItem);
+
+        if (resource.isBlank())
+            return false;
+
+        fuelStack.shrink(1);
+
+        if (fuelStack.isEmpty()) {
+            var bucketItem = fuelItem.getCraftingRemainingItem();
+            this.setItem(0, bucketItem == null ? ItemStack.EMPTY : new ItemStack(bucketItem));
+        }
+
+        return this.burningStorage.insert(resource, resource.getDuration(), transaction) > 0;
+    }
+
+    public Storage<FuelVariant> getBurningStorage() {
         return this.burningStorage;
     }
 
@@ -96,29 +165,37 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
 
     @Override
     protected AbstractContainerMenu createMenu(int syncId, Inventory inventory) {
-        return new HeaterMenu(syncId, inventory, this, this.burningStorage);
+        return new HeaterMenu(syncId, inventory, this, this.burningData);
     }
 
     // BlockEntity (override)
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        ContainerHelper.loadAllItems(tag, this.items);
-        this.burningStorage.load(tag);
+    public void load(CompoundTag compoundTag) {
+        super.load(compoundTag);
+        ContainerHelper.loadAllItems(compoundTag, this.items);
+        this.burningStorage.variant = FuelVariant.of(BuiltInRegistries.ITEM.get(ResourceLocation.tryParse(compoundTag.getCompound("variant").getString("fuel"))));
+        this.burningStorage.amount = compoundTag.getLong("amount");
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         ContainerHelper.saveAllItems(tag, this.items);
-        this.burningStorage.save(tag);
+        this.burningStorage.writeNbt(tag);
     }
 
     @Override
     public void setChanged() {
-        BurningStorageBlockEntity.tryUpdateLitProperty(this, this.burningStorage);
+        BurningStorageBlockEntity.tryUpdateLitProperty(this, isBurning());
         super.setChanged();
+    }
+
+    @Override
+    public boolean canPlaceItem(int slot, ItemStack stack) {
+        return stack != null &&
+                (!FuelVariant.of(stack.getItem()).isBlank()
+                        || stack.is(Items.BUCKET) && !this.items.get(0).is(Items.BUCKET));
     }
 
     // WorldlyContainer
@@ -190,79 +267,6 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     // Static
 
     public static void tick(Level level, BlockPos pos, BlockState state, HeaterBlockEntity heater) {
-        var context = BurningContext.worldlyContext(level);
-        try (var transaction = Transaction.openOuter()) {
-            if (heater.isBurning())
-                statelessPropagation(level, pos, context, transaction);
-
-            if (heater.isBurning() && state.getBlock() instanceof HeaterBlock block)
-                heater.burningStorage.extract(
-                        heater.burningStorage.getBurning(context).withValue(block.getAge().ordinal() + 1, context),
-                        context,
-                        transaction);
-
-            heater.consumeFuel(context, transaction);
-            transaction.commit();
-        }
-    }
-
-    private static void statelessPropagation(
-            Level level, BlockPos zero, BurningContext context, Transaction transaction) {
-        var storages = new BurningStorage[] { null, null };
-        var threshold = new double[] { 1d };
-
-        searchBurningStorages(level, zero, (pos, storage) -> {
-            if (zero.equals(pos)) {
-                storages[0] = storage;
-                threshold[0] = storage.getBurning(context).getPercent();
-            } else if (storage instanceof HeaterBurningStorage) {
-                // ignore
-            } else if (storage.supportsInsertion() && storage.getBurning(context).getPercent() <= threshold[0]) {
-                storages[1] = storage;
-                return true;
-            }
-            return false;
-        });
-
-        BurningStorage.transfer(storages[0], storages[1], storages[0].getBurning(context), context, transaction);
-    }
-
-    private static final void searchBurningStorages(Level level, BlockPos start,
-            BiPredicate<BlockPos, BurningStorage> shallReturn) {
-        var open = new LinkedList<Triple<Direction, BlockPos, Integer>>();
-        var closed = new HashSet<BlockPos>(64);
-        closed.add(start);
-
-        for (var elem = Triple.of((Direction) null, start, 64); elem != null; elem = open.poll()) {
-            var from = elem.getLeft();
-            var pos = elem.getMiddle();
-            var storage = BurningStorage.SIDED.find(level, pos, from);
-            if (storage != null && shallReturn.test(pos, storage))
-                return;
-
-            BurningPropagator propagator = null;
-            int hops = elem.getRight() - 1;
-            if (hops > 0) {
-                propagator = BurningPropagator.SIDED.find(level, pos, from);
-            }
-
-            if (propagator == null)
-                continue;
-
-            var dirs = propagator.evalPropagationTargets(level, pos).toArray(Direction[]::new);
-
-            for (int i = dirs.length - 1; i > 0; --i) {
-                int j = level.random.nextInt(i + 1);
-                var d = dirs[j];
-                dirs[j] = dirs[i];
-                dirs[i] = d;
-            }
-
-            for (var dir : dirs) {
-                var relative = pos.relative(dir);
-                if (closed.add(relative))
-                    open.addFirst(Triple.of(dir.getOpposite(), relative, hops));
-            }
-        }
+        heater.tick(level, pos, state);
     }
 }
