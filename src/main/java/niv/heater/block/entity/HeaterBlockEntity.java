@@ -8,15 +8,12 @@ import com.google.common.base.Suppliers;
 
 import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
@@ -43,7 +40,7 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     private static final Supplier<Component> DEFAULT_NAME = Suppliers
             .memoize(() -> Component.translatable(CONTAINER_NAME));
 
-    private final SingleVariantStorage<FuelVariant> burningStorage = new SimpleBurningStorage() {
+    private final SimpleBurningStorage burningStorage = new SimpleBurningStorage() {
         @Override
         public boolean supportsInsertion() {
             return false;
@@ -174,15 +171,14 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     public void load(CompoundTag compoundTag) {
         super.load(compoundTag);
         ContainerHelper.loadAllItems(compoundTag, this.items);
-        this.burningStorage.variant = FuelVariant.of(BuiltInRegistries.ITEM.get(ResourceLocation.tryParse(compoundTag.getCompound("variant").getString("fuel"))));
-        this.burningStorage.amount = compoundTag.getLong("amount");
+        this.burningStorage.readNbt(compoundTag);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        ContainerHelper.saveAllItems(tag, this.items);
-        this.burningStorage.writeNbt(tag);
+    protected void saveAdditional(CompoundTag compoundTag) {
+        super.saveAdditional(compoundTag);
+        ContainerHelper.saveAllItems(compoundTag, this.items);
+        this.burningStorage.writeNbt(compoundTag);
     }
 
     @Override
