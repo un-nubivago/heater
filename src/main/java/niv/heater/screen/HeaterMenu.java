@@ -1,5 +1,8 @@
 package niv.heater.screen;
 
+import static net.minecraft.world.inventory.FurnaceFuelSlot.isBucket;
+import static niv.burning.api.FuelVariant.isFuel;
+
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -7,11 +10,9 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.inventory.FurnaceFuelSlot;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import niv.heater.registry.HeaterMenus;
 
 public class HeaterMenu extends AbstractContainerMenu {
@@ -20,8 +21,6 @@ public class HeaterMenu extends AbstractContainerMenu {
 
     private final Container container;
     private final ContainerData containerData;
-
-    private final Level level;
 
     public HeaterMenu(int syncId, Inventory inventory) {
         this(syncId, inventory, new SimpleContainer(1), new SimpleContainerData(2));
@@ -34,9 +33,8 @@ public class HeaterMenu extends AbstractContainerMenu {
         checkContainerDataCount(containerData, 2);
         this.container = container;
         this.containerData = containerData;
-        this.level = inventory.player.level();
 
-        addSlot(new HeaterFuelSlot(container, 0, 80, 44));
+        addSlot(new FuelSlot(container, 0, 80, 44));
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 9; j++) {
@@ -96,20 +94,20 @@ public class HeaterMenu extends AbstractContainerMenu {
         return Mth.clamp(this.containerData.get(0) / i, 0f, 1f);
     }
 
-    private final class HeaterFuelSlot extends Slot {
+    private static final class FuelSlot extends Slot {
 
-        public HeaterFuelSlot(Container container, int slot, int x, int y) {
+        public FuelSlot(Container container, int slot, int x, int y) {
             super(container, slot, x, y);
         }
 
         @Override
         public boolean mayPlace(ItemStack stack) {
-            return HeaterMenu.this.level.fuelValues().isFuel(stack) || FurnaceFuelSlot.isBucket(stack);
+            return isFuel(stack) || isBucket(stack);
         }
 
         @Override
         public int getMaxStackSize(ItemStack stack) {
-            return FurnaceFuelSlot.isBucket(stack) ? 1 : super.getMaxStackSize(stack);
+            return isBucket(stack) ? 1 : super.getMaxStackSize(stack);
         }
     }
 }
