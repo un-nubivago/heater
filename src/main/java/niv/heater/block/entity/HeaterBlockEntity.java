@@ -44,7 +44,7 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
         DEFAULT_NAME = Component.translatable(CONTAINER_NAME);
     }
 
-    private final SingleVariantStorage<FuelVariant> burningStorage = new SimpleBurningStorage() {
+    private final SimpleBurningStorage burningStorage = new SimpleBurningStorage() {
         @Override
         public boolean supportsInsertion() {
             return false;

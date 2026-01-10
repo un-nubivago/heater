@@ -68,7 +68,9 @@ public class ThermostatBlockEntity extends BlockEntity {
             transaction.addOuterCloseCallback(result -> this.hasBeenExploredAlready.remove());
         }
 
-        var inserted = this.getBlockState().getBlock() instanceof ThermostatBlock block ? block.getAge().ordinal() : 0;
+        var inserted = this.getBlockState().getBlock() instanceof ThermostatBlock block
+                ? block.getAge().ordinal() + 1
+                : 0;
         if (inserted >= maxAmount)
             return maxAmount;
 

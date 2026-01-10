@@ -67,7 +67,7 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
                 return 0L;
             }
 
-            var inserted = this.getAge().ordinal();
+            var inserted = this.getAge().ordinal() + 1;
 
             if (inserted >= maxAmount)
                 return maxAmount;
