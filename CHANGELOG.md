@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added
+
++ Added fuel whitelisting and casting functionalities to the `Thermostat`.
+
+### Changed
+
++ Updated `Burning` dependency to `3.0`.
++ Fixed the burning propagation logic.
+
+## [4.1] - 2025-12-26
+
+Backward release for Minecraft 1.20.1, no corresponding tag.
+
 ### Changed
 
 + Updated `Burning` dependency to `2.0` to use the new `BurningPropagator` interface and logic.
@@ -73,7 +86,7 @@
 
 ### Fixed
 
-+ Fix interoperability with Variant Furnaces and hopefully with other 3rd party mods, too ([#5](https://github.com/NivOridocs/heater/issues/5)).
++ Fix interoperability with Variant Furnaces and hopefully with other 3rd party mods, too ([#5](https://github.com/un-nubivago/heater/issues/5)).
 
 ## [3.2] - 2024-08-03
 
@@ -133,7 +146,7 @@
 
 ### Added
 
-+ Add new textures for `Unaffected`, `Exposed`, `Weathered`, and `Oxidized` variants for the `Heater` and the `Heat Pipe` blocks ([#2](https://github.com/NivOridocs/heater/pull/2)) (StarOcean)
++ Add new textures for `Unaffected`, `Exposed`, `Weathered`, and `Oxidized` variants for the `Heater` and the `Heat Pipe` blocks ([#2](https://github.com/un-nubivago/heater/pull/2)) (StarOcean)
 
 + Add `Exposed`, `Weathered`, and `Oxidized` variants of the `Heater` and the `Heat Pipe` blocks and items. Only accessible through creative mode.
 
@@ -143,20 +156,21 @@
 
 Initial release.
 
-[4.0.7]: https://github.com/NivOridocs/heater/releases/tag/4.0.7
-[4.0.6]: https://github.com/NivOridocs/heater/releases/tag/4.0.6
-[4.0.5]: https://github.com/NivOridocs/heater/releases/tag/4.0.5
-[4.0.4]: https://github.com/NivOridocs/heater/releases/tag/4.0.4
-[4.0.3]: https://github.com/NivOridocs/heater/releases/tag/4.0.3
-[4.0.2]: https://github.com/NivOridocs/heater/releases/tag/4.0.2
-[4.0.1]: https://github.com/NivOridocs/heater/releases/tag/4.0.1
-[4.0]: https://github.com/NivOridocs/heater/releases/tag/4.0
-[3.3]: https://github.com/NivOridocs/heater/releases/tag/3.3
-[3.2]: https://github.com/NivOridocs/heater/releases/tag/3.2
-[3.1]: https://github.com/NivOridocs/heater/releases/tag/3.1
-[3.0]: https://github.com/NivOridocs/heater/releases/tag/3.0
-[2.0]: https://github.com/NivOridocs/heater/releases/tag/2.0
-[1.2.0]: https://github.com/NivOridocs/heater/releases/tag/1.2.0
-[1.1.1]: https://github.com/NivOridocs/heater/releases/tag/1.1.1
-[1.1.0]: https://github.com/NivOridocs/heater/releases/tag/1.1.0
-[1.0.0]: https://github.com/NivOridocs/heater/releases/tag/1.0.0
+[4.1]: https://github.com/un-nubivago/heater/releases
+[4.0.7]: https://github.com/un-nubivago/heater/releases/tag/4.0.7
+[4.0.6]: https://github.com/un-nubivago/heater/releases/tag/4.0.6
+[4.0.5]: https://github.com/un-nubivago/heater/releases/tag/4.0.5
+[4.0.4]: https://github.com/un-nubivago/heater/releases/tag/4.0.4
+[4.0.3]: https://github.com/un-nubivago/heater/releases/tag/4.0.3
+[4.0.2]: https://github.com/un-nubivago/heater/releases/tag/4.0.2
+[4.0.1]: https://github.com/un-nubivago/heater/releases/tag/4.0.1
+[4.0]: https://github.com/un-nubivago/heater/releases/tag/4.0
+[3.3]: https://github.com/un-nubivago/heater/releases/tag/3.3
+[3.2]: https://github.com/un-nubivago/heater/releases/tag/3.2
+[3.1]: https://github.com/un-nubivago/heater/releases/tag/3.1
+[3.0]: https://github.com/un-nubivago/heater/releases/tag/3.0
+[2.0]: https://github.com/un-nubivago/heater/releases/tag/2.0
+[1.2.0]: https://github.com/un-nubivago/heater/releases/tag/1.2.0
+[1.1.1]: https://github.com/un-nubivago/heater/releases/tag/1.1.1
+[1.1.0]: https://github.com/un-nubivago/heater/releases/tag/1.1.0
+[1.0.0]: https://github.com/un-nubivago/heater/releases/tag/1.0.0

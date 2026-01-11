@@ -53,7 +53,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import niv.heater.block.entity.HeaterBlockEntity;
 import niv.heater.registry.HeaterBlocks;
 import niv.heater.registry.HeaterTabs;
-import niv.heater.util.WeatheringBlocks;
+import niv.heater.util.WeatheringCopperBlocks;
 
 public class HeaterDataGenerator implements DataGeneratorEntrypoint {
 
@@ -231,7 +231,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             builder.add(HeaterTabs.TAB_NAME, Heater.MOD_NAME);
         }
 
-        private void addAll(TranslationBuilder builder, String name, WeatheringBlocks blocks) {
+        private void addAll(TranslationBuilder builder, String name, WeatheringCopperBlocks blocks) {
             builder.add(blocks.unaffected(), name);
             builder.add(blocks.exposed(), "Exposed " + name);
             builder.add(blocks.weathered(), "Weathered " + name);
@@ -305,7 +305,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             generateWaxingRecipe(output, HeaterBlocks.THERMOSTAT);
         }
 
-        private void generateWaxingRecipe(RecipeOutput output, WeatheringBlocks blocks) {
+        private void generateWaxingRecipe(RecipeOutput output, WeatheringCopperBlocks blocks) {
             blocks.waxedMapping().forEach((block, waxed) -> shapeless(RecipeCategory.MISC, waxed)
                     .requires(block).requires(Items.HONEYCOMB)
                     .unlockedBy(getHasName(block), has(block))

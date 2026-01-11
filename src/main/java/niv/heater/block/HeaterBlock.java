@@ -45,7 +45,7 @@ public class HeaterBlock extends AbstractFurnaceBlock {
         return (resource, maxAmount, transaction) -> {
             StoragePreconditions.notBlankNotNegative(resource, maxAmount);
 
-            var inserted = this.getAge().ordinal();
+            var inserted = this.getAge().ordinal() + 1;
 
             if (inserted >= maxAmount)
                 return maxAmount;
