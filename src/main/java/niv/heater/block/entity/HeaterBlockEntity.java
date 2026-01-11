@@ -157,8 +157,6 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
         return wrappers[index];
     }
 
-    // BaseContainerBlockEntity (required)
-
     @Override
     public int getContainerSize() {
         return 1;
@@ -183,8 +181,6 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     protected AbstractContainerMenu createMenu(int syncId, Inventory inventory) {
         return new HeaterMenu(syncId, inventory, this, this.burningData);
     }
-
-    // BlockEntity (override)
 
     @Override
     protected void loadAdditional(ValueInput valueInput) {
@@ -211,8 +207,6 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
         return isFuel(stack) || (isBucket(stack) && !isBucket(this.items.get(0)));
     }
 
-    // WorldlyContainer
-
     @Override
     public int[] getSlotsForFace(Direction direction) {
         return new int[] { 0 };
@@ -227,8 +221,6 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction direction) {
         return direction != Direction.DOWN || stack.is(Items.WATER_BUCKET) || stack.is(Items.BUCKET);
     }
-
-    // Static
 
     public static void tick(Level level, BlockPos pos, BlockState state, HeaterBlockEntity heater) {
         heater.tick(level, pos, state);

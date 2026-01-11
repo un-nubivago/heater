@@ -113,8 +113,6 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
         return result;
     }
 
-    // PipeBlock
-
     @Override
     public MapCodec<? extends HeatPipeBlock> codec() {
         return CODEC;

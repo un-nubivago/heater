@@ -28,6 +28,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import niv.heater.block.entity.ThermostatBlockEntity;
 import niv.heater.registry.HeaterBlocks;
 
+import static niv.burning.api.FuelVariant.isFuel;
+
 public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
 
     @SuppressWarnings("java:S1845")
@@ -44,14 +46,10 @@ public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
                 .getOrDefault(this, HeaterBlocks.THERMOSTAT.unaffected())).getAge();
     }
 
-    // DirectionalBlock -- required
-
     @Override
     public MapCodec<? extends ThermostatBlock> codec() {
         return CODEC;
     }
-
-    // DirectionalBlock -- overridden
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
@@ -79,23 +77,23 @@ public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
             ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
             InteractionHand hand, BlockHitResult hitResult) {
         if (level.isClientSide())
-            return InteractionResult.SUCCESS;
+            return stack.isEmpty() || isFuel(stack) ? InteractionResult.SUCCESS : InteractionResult.PASS;
 
         var entity = level.getBlockEntity(pos, THERMOSTAT).orElse(null);
         if (entity == null)
-            return InteractionResult.FAIL;
+            return InteractionResult.PASS;
 
         if (stack.isEmpty()) {
             entity.unsetFilter();
             level.playSound(null, pos, SoundEvents.COPPER_HIT, SoundSource.BLOCKS, 1.2f, 1.2f);
         } else if (entity.setFilter(stack)) {
             level.playSound(null, pos, SoundEvents.COPPER_HIT, SoundSource.BLOCKS, 1.2f, 1.3f);
+        } else {
+            return InteractionResult.PASS;
         }
 
         return InteractionResult.SUCCESS;
     }
-
-    // EntityBlock -- required
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {

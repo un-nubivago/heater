@@ -90,8 +90,6 @@ public class ThermostatBlockEntity extends BlockEntity {
         return (resource, maxAmount, transaction) -> tryInsert(side, resource, maxAmount, transaction);
     }
 
-    // BlockEntity
-
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
