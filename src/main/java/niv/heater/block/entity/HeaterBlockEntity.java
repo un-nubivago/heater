@@ -1,10 +1,10 @@
 package niv.heater.block.entity;
 
-import java.util.function.Supplier;
+import static net.minecraft.world.inventory.FurnaceFuelSlot.isBucket;
+import static niv.burning.api.FuelVariant.isFuel;
+import static niv.heater.Heater.MOD_ID;
 
 import org.jetbrains.annotations.Nullable;
-
-import com.google.common.base.Suppliers;
 
 import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
@@ -35,10 +35,14 @@ import niv.heater.screen.HeaterMenu;
 
 public class HeaterBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
 
-    public static final String CONTAINER_NAME = "container.heater";
+    public static final String CONTAINER_NAME;
 
-    private static final Supplier<Component> DEFAULT_NAME = Suppliers
-            .memoize(() -> Component.translatable(CONTAINER_NAME));
+    private static final Component DEFAULT_NAME;
+
+    static {
+        CONTAINER_NAME = "container." + MOD_ID + ".heater";
+        DEFAULT_NAME = Component.translatable(CONTAINER_NAME);
+    }
 
     private final SimpleBurningStorage burningStorage = new SimpleBurningStorage() {
         @Override
@@ -157,7 +161,7 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
 
     @Override
     protected Component getDefaultName() {
-        return DEFAULT_NAME.get();
+        return DEFAULT_NAME;
     }
 
     @Override
@@ -189,9 +193,7 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
 
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
-        return stack != null &&
-                (!FuelVariant.of(stack.getItem()).isBlank()
-                        || stack.is(Items.BUCKET) && !this.items.get(0).is(Items.BUCKET));
+        return isFuel(stack) || (isBucket(stack) && !isBucket(this.items.get(0)));
     }
 
     // WorldlyContainer

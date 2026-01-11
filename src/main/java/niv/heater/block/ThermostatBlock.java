@@ -1,34 +1,31 @@
 package niv.heater.block;
 
-import static niv.heater.registry.HeaterBlockEntityTypes.HEATER;
+import static niv.heater.registry.HeaterBlockEntityTypes.THERMOSTAT;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.Nullable;
-
-import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DirectionalBlock;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.WeatheringCopper.WeatherState;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import niv.burning.api.BurningStorage;
-import niv.burning.api.FuelVariant;
+import net.minecraft.world.phys.BlockHitResult;
+import niv.heater.block.entity.ThermostatBlockEntity;
 import niv.heater.registry.HeaterBlocks;
 
-public class ThermostatBlock extends DirectionalBlock {
-
-    private static final ThreadLocal<Set<Pair<Level, BlockPos>>> EXPLORED_SET = ThreadLocal.withInitial(HashSet::new);
+public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
 
     public ThermostatBlock(Properties settings) {
         super(settings);
@@ -41,48 +38,7 @@ public class ThermostatBlock extends DirectionalBlock {
                 .getOrDefault(this, HeaterBlocks.THERMOSTAT.unaffected())).getAge();
     }
 
-    public InsertionOnlyStorage<FuelVariant> getStatelessStorage(
-            Level level, BlockPos pos, BlockState state, @Nullable Direction direction) {
-        return (resource, maxAmount, transaction) -> {
-            StoragePreconditions.notBlankNotNegative(resource, maxAmount);
-
-            var facing = state.getOptionalValue(FACING).orElseThrow(IllegalStateException::new);
-            if (facing.equals(direction))
-                return 0L;
-
-            if (tryAdd(level, pos)) {
-                transaction.addOuterCloseCallback(result -> doRemove(level, pos));
-            } else {
-                return 0L;
-            }
-
-            var inserted = this.getAge().ordinal();
-            if (inserted >= maxAmount)
-                return maxAmount;
-
-            if (level.hasNeighborSignal(pos) && facing != null) {
-                var rel = pos.relative(facing);
-                var storage = BurningStorage.SIDED.find(level, rel, facing.getOpposite());
-                if (storage != null
-                        && (storage.supportsInsertion() || level.getBlockEntity(rel, HEATER).isPresent()))
-                    inserted += storage.insert(resource, maxAmount - inserted, transaction);
-            }
-
-            return inserted;
-        };
-    }
-
-    private boolean tryAdd(Level level, BlockPos pos) {
-        return EXPLORED_SET.get().add(Pair.of(level, pos));
-    }
-
-    private void doRemove(Level level, BlockPos pos) {
-        EXPLORED_SET.get().remove(Pair.of(level, pos));
-        if (EXPLORED_SET.get().isEmpty())
-            EXPLORED_SET.remove();
-    }
-
-    // DirectionalBlock
+    // DirectionalBlock -- required
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
@@ -103,5 +59,36 @@ public class ThermostatBlock extends DirectionalBlock {
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState()
                 .setValue(FACING, context.getNearestLookingDirection().getOpposite());
+    }
+
+    @SuppressWarnings("java:S1874")
+    @Override
+    public InteractionResult use(
+            BlockState state, Level level, BlockPos pos, Player player,
+            InteractionHand hand, BlockHitResult hit) {
+        if (level.isClientSide())
+            return InteractionResult.SUCCESS;
+
+        var entity = level.getBlockEntity(pos, THERMOSTAT).orElse(null);
+        if (entity == null)
+            return InteractionResult.FAIL;
+
+        var stack = player.getItemInHand(hand);
+
+        if (stack.isEmpty()) {
+            entity.unsetFilter();
+            level.playSound(null, pos, SoundEvents.COPPER_HIT, SoundSource.BLOCKS, 1.2f, 1.2f);
+        } else if (entity.setFilter(stack)) {
+            level.playSound(null, pos, SoundEvents.COPPER_HIT, SoundSource.BLOCKS, 1.2f, 1.3f);
+        }
+
+        return InteractionResult.SUCCESS;
+    }
+
+    // EntityBlock -- required
+
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new ThermostatBlockEntity(pos, state);
     }
 }

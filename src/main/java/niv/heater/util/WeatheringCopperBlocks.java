@@ -14,23 +14,22 @@ import org.apache.commons.lang3.function.TriFunction;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 
-import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.WeatheringCopper.WeatherState;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
 // Added for backport compatibility
-public record WeatheringBlocks(
+public record WeatheringCopperBlocks(
         Block unaffected, Block exposed, Block weathered, Block oxidized,
         Block waxed, Block waxedExposed, Block waxedWeathered, Block waxedOxidized) {
-    public static <A extends Block, B extends Block & WeatheringCopper> WeatheringBlocks create(
+    public static <A extends Block, B extends Block & WeatheringCopper> WeatheringCopperBlocks create(
             String id,
             TriFunction<String, Function<Properties, Block>, Properties, Block> register,
             Function<Properties, A> waxedBlockGetter,
             BiFunction<WeatherState, Properties, B> weatheredBlockGetter,
             Function<WeatherState, Properties> propertiesGetter) {
-        return new WeatheringBlocks(
+        return new WeatheringCopperBlocks(
                 // Weathering
                 register.apply(id,
                         properties -> weatheredBlockGetter.apply(UNAFFECTED, properties),
@@ -92,11 +91,5 @@ public record WeatheringBlocks(
         consumer.accept(this.waxedExposed);
         consumer.accept(this.waxedWeathered);
         consumer.accept(this.waxedOxidized);
-    }
-
-    public WeatheringBlocks register() {
-        this.weatheringMapping().forEach(OxidizableBlocksRegistry::registerOxidizableBlockPair);
-        this.waxedMapping().forEach(OxidizableBlocksRegistry::registerWaxableBlockPair);
-        return this;
     }
 }
