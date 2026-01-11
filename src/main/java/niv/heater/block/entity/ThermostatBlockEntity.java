@@ -90,8 +90,6 @@ public class ThermostatBlockEntity extends BlockEntity {
         return (resource, maxAmount, transaction) -> tryInsert(side, resource, maxAmount, transaction);
     }
 
-    // BlockEntity
-
     @Override
     protected void loadAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
         super.loadAdditional(compoundTag, registries);

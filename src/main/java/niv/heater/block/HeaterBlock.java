@@ -76,8 +76,6 @@ public class HeaterBlock extends AbstractFurnaceBlock {
         return result;
     }
 
-    // AbstractFurnaceBlock
-
     @Override
     public MapCodec<? extends HeaterBlock> codec() {
         return CODEC;
