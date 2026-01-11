@@ -52,11 +52,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.WeatheringCopperBlocks;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import niv.heater.block.entity.HeaterBlockEntity;
 import niv.heater.registry.HeaterBlocks;
 import niv.heater.registry.HeaterTabs;
+import niv.heater.util.WeatheringCopperBlocks;
 
 public class HeaterDataGenerator implements DataGeneratorEntrypoint {
 

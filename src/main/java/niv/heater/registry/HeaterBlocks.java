@@ -19,7 +19,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.WeatheringCopper.WeatherState;
-import net.minecraft.world.level.block.WeatheringCopperBlocks;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import niv.heater.block.HeatPipeBlock;
 import niv.heater.block.HeaterBlock;
@@ -27,6 +26,7 @@ import niv.heater.block.ThermostatBlock;
 import niv.heater.block.WeatheringHeatPipeBlock;
 import niv.heater.block.WeatheringHeaterBlock;
 import niv.heater.block.WeatheringThermostatBlock;
+import niv.heater.util.WeatheringCopperBlocks;
 
 public class HeaterBlocks {
     private HeaterBlocks() {
@@ -54,7 +54,8 @@ public class HeaterBlocks {
             Function<WeatherState, Properties> propertiesBuilder) {
         var result = WeatheringCopperBlocks.create(name, HeaterBlocks::register,
                 waxedConstructor, weatheredConstructor, propertiesBuilder);
-        OxidizableBlocksRegistry.registerCopperBlockSet(result);
+        result.weatheringMapping().forEach(OxidizableBlocksRegistry::registerOxidizableBlockPair);
+        result.waxedMapping().forEach(OxidizableBlocksRegistry::registerWaxableBlockPair);
         return result;
     }
 
