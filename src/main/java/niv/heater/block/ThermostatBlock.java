@@ -87,9 +87,9 @@ public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
 
         if (stack.isEmpty()) {
             entity.unsetFilter();
-            level.playSound(null, pos, SoundEvents.COPPER_BULB_TURN_OFF, SoundSource.BLOCKS, 1.2f, 1.2f);
+            level.playSound(null, pos, SoundEvents.COPPER_HIT, SoundSource.BLOCKS, 1.2f, 1.2f);
         } else if (entity.setFilter(stack)) {
-            level.playSound(null, pos, SoundEvents.COPPER_BULB_TURN_ON, SoundSource.BLOCKS, 1.2f, 1.2f);
+            level.playSound(null, pos, SoundEvents.COPPER_HIT, SoundSource.BLOCKS, 1.2f, 1.3f);
         }
 
         return InteractionResult.SUCCESS;
