@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [4.2] - 2026-01-11
+
 ### Added
 
 + Added fuel whitelisting and casting functionalities to the `Thermostat`.
@@ -156,6 +158,7 @@ Backward release for Minecraft 1.20.1, no corresponding tag.
 
 Initial release.
 
+[4.2]: https://github.com/un-nubivago/heater/releases/tag/4.2
 [4.1]: https://github.com/un-nubivago/heater/releases
 [4.0.7]: https://github.com/un-nubivago/heater/releases/tag/4.0.7
 [4.0.6]: https://github.com/un-nubivago/heater/releases/tag/4.0.6
