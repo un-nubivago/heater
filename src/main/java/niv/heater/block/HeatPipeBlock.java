@@ -108,8 +108,6 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
         return result;
     }
 
-    // PipeBlock
-
     @Override
     public boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
         return !state.getValue(WATERLOGGED).booleanValue();

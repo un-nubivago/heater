@@ -83,8 +83,6 @@ public class ThermostatBlockEntity extends BlockEntity {
         return (resource, maxAmount, transaction) -> tryInsert(side, resource, maxAmount, transaction);
     }
 
-    // BlockEntity
-
     @Override
     public void load(CompoundTag compoundTag) {
         super.load(compoundTag);

@@ -157,8 +157,6 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
         return wrappers[index];
     }
 
-    // BaseContainerBlockEntity (required)
-
     @Override
     protected Component getDefaultName() {
         return DEFAULT_NAME;
@@ -168,8 +166,6 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     protected AbstractContainerMenu createMenu(int syncId, Inventory inventory) {
         return new HeaterMenu(syncId, inventory, this, this.burningData);
     }
-
-    // BlockEntity (override)
 
     @Override
     public void load(CompoundTag compoundTag) {
@@ -196,8 +192,6 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
         return isFuel(stack) || (isBucket(stack) && !isBucket(this.items.get(0)));
     }
 
-    // WorldlyContainer
-
     @Override
     public int[] getSlotsForFace(Direction direction) {
         return new int[] { 0 };
@@ -212,8 +206,6 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction direction) {
         return direction != Direction.DOWN || stack.is(Items.WATER_BUCKET) || stack.is(Items.BUCKET);
     }
-
-    // Container
 
     @Override
     public int getContainerSize() {
@@ -261,8 +253,6 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     public boolean stillValid(Player player) {
         return Container.stillValidBlockEntity(this, player);
     }
-
-    // Static
 
     public static void tick(Level level, BlockPos pos, BlockState state, HeaterBlockEntity heater) {
         heater.tick(level, pos, state);

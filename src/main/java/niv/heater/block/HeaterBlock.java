@@ -77,8 +77,6 @@ public class HeaterBlock extends AbstractFurnaceBlock {
         return result;
     }
 
-    // AbstractFurnaceBlock
-
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new HeaterBlockEntity(pos, state);
