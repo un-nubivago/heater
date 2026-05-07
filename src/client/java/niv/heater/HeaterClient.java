@@ -1,9 +1,12 @@
 package niv.heater;
 
+import org.jspecify.annotations.NullMarked;
+
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.gui.screens.MenuScreens;
 import niv.heater.registry.HeaterMenus;
 
+@NullMarked
 public class HeaterClient implements ClientModInitializer {
 
     @Override

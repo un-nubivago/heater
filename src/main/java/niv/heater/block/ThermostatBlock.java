@@ -2,6 +2,8 @@ package niv.heater.block;
 
 import static niv.heater.registry.HeaterBlockEntityTypes.THERMOSTAT;
 
+import org.jspecify.annotations.NullMarked;
+
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
@@ -30,17 +32,19 @@ import niv.heater.registry.HeaterBlocks;
 
 import static niv.burning.api.FuelVariant.isFuel;
 
+@NullMarked
 public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
 
-    @SuppressWarnings("java:S1845")
+    @SuppressWarnings({ "null", "java:S1845" })
     public static final MapCodec<ThermostatBlock> CODEC = simpleCodec(ThermostatBlock::new);
 
+    @SuppressWarnings("null")
     public ThermostatBlock(Properties settings) {
         super(settings);
-        registerDefaultState(stateDefinition.any()
-                .setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
+    @SuppressWarnings("null")
     public WeatherState getAge() {
         return ((WeatheringCopper) HeaterBlocks.THERMOSTAT.waxedMapping().inverse()
                 .getOrDefault(this, HeaterBlocks.THERMOSTAT.unaffected())).getAge();
@@ -56,16 +60,19 @@ public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
         builder.add(FACING);
     }
 
+    @SuppressWarnings("null")
     @Override
     public BlockState rotate(BlockState state, Rotation rotation) {
         return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
+    @SuppressWarnings("null")
     @Override
     public BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
+    @SuppressWarnings("null")
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState()
@@ -79,9 +86,12 @@ public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
         if (level.isClientSide())
             return stack.isEmpty() || isFuel(stack) ? InteractionResult.SUCCESS : InteractionResult.PASS;
 
-        var entity = level.getBlockEntity(pos, THERMOSTAT).orElse(null);
-        if (entity == null)
+        var someEntity = level.getBlockEntity(pos, THERMOSTAT);
+        if (someEntity.isEmpty())
             return InteractionResult.PASS;
+
+        @SuppressWarnings("null")
+        var entity = someEntity.get();
 
         if (stack.isEmpty()) {
             entity.unsetFilter();

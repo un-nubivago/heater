@@ -4,7 +4,8 @@ import static niv.heater.registry.HeaterBlockEntityTypes.HEATER;
 
 import java.util.List;
 
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
@@ -26,10 +27,14 @@ import niv.burning.api.FuelVariant;
 import niv.heater.block.ThermostatBlock;
 import niv.heater.registry.HeaterBlockEntityTypes;
 
+import static java.util.Objects.requireNonNull;
+
+@NullMarked
 public class ThermostatBlockEntity extends BlockEntity {
 
     private static final String TAG_FILTER = "filter";
 
+    @SuppressWarnings("null")
     private final ThreadLocal<Boolean> hasBeenExploredAlready = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     private FuelVariant filter = FuelVariant.BLANK;
@@ -38,7 +43,7 @@ public class ThermostatBlockEntity extends BlockEntity {
         super(HeaterBlockEntityTypes.THERMOSTAT, pos, state);
     }
 
-    public boolean setFilter(ItemStack stack) {
+    public boolean setFilter(@Nullable ItemStack stack) {
         if (stack == null)
             return false;
 
@@ -54,7 +59,11 @@ public class ThermostatBlockEntity extends BlockEntity {
         this.filter = FuelVariant.BLANK;
     }
 
-    private long tryInsert(Direction side, FuelVariant resource, long maxAmount, TransactionContext transaction) {
+    private long tryInsert(@Nullable Direction side, @Nullable FuelVariant resource, long maxAmount,
+            TransactionContext transaction) {
+        if (resource == null)
+            return 0L;
+
         StoragePreconditions.notBlankNotNegative(resource, maxAmount);
 
         var facing = getBlockState().getOptionalValue(DirectionalBlock.FACING).orElseThrow(IllegalStateException::new);
@@ -74,12 +83,13 @@ public class ThermostatBlockEntity extends BlockEntity {
         if (inserted >= maxAmount)
             return maxAmount;
 
-        if (level.hasNeighborSignal(getBlockPos()) || this.filter == resource) {
+        var safeLevel = this.level;
+        if (safeLevel != null && (safeLevel.hasNeighborSignal(getBlockPos()) || this.filter == resource)) {
             resource = this.filter.isBlank() ? resource : this.filter;
 
             var rel = getBlockPos().relative(facing);
-            var storage = BurningStorage.SIDED.find(level, rel, facing.getOpposite());
-            if (storage != null && (storage.supportsInsertion() || level.getBlockEntity(rel, HEATER).isPresent()))
+            var storage = BurningStorage.SIDED.find(safeLevel, rel, facing.getOpposite());
+            if (storage != null && (storage.supportsInsertion() || safeLevel.getBlockEntity(rel, HEATER).isPresent()))
                 inserted += storage.insert(resource, maxAmount - inserted, transaction);
         }
 
@@ -87,9 +97,10 @@ public class ThermostatBlockEntity extends BlockEntity {
     }
 
     public InsertionOnlyStorage<FuelVariant> getBurningStorage(@Nullable Direction side) {
-        return (resource, maxAmount, transaction) -> tryInsert(side, resource, maxAmount, transaction);
+        return (resource, maxAmount, transaction) -> tryInsert(side, resource, maxAmount, requireNonNull(transaction));
     }
 
+    @SuppressWarnings({ "null", "java:S2637" })
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
@@ -102,6 +113,7 @@ public class ThermostatBlockEntity extends BlockEntity {
         output.storeNullable(TAG_FILTER, FuelVariant.CODEC, this.filter);
     }
 
+    @SuppressWarnings("null")
     @Override
     protected void applyImplicitComponents(DataComponentGetter getter) {
         super.applyImplicitComponents(getter);
@@ -110,6 +122,7 @@ public class ThermostatBlockEntity extends BlockEntity {
                 .copyOne());
     }
 
+    @SuppressWarnings("null")
     @Override
     protected void collectImplicitComponents(Builder builder) {
         super.collectImplicitComponents(builder);
