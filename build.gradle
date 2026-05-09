@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version "${loom_version}"
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
     id 'maven-publish'
     id "com.modrinth.minotaur" version "2.+"
 }
@@ -23,10 +23,6 @@ repositories {
             includeGroup "maven.modrinth"
         }
     }
-    maven {
-        name = 'ParchmentMC'
-        url = 'https://maven.parchmentmc.org'
-    }
 }
 
 loom {
@@ -40,6 +36,18 @@ loom {
     }
 }
 
+dependencies {
+    // To change the versions see the gradle.properties file
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    // Fabric API. This is technically optional, but you probably want it anyway.
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+    implementation "maven.modrinth:burning:${project.burning_version}"
+}
+
 fabricApi {
     configureDataGeneration {
         outputDirectory = file("src/generated/resources")
@@ -47,41 +55,22 @@ fabricApi {
     }
 }
 
-dependencies {
-    // To change the versions see the gradle.properties file
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.layered() {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${project.minecraft_version}:${project.parchment_version}@zip")
-    }
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-    // Fabric API. This is technically optional, but you probably want it anyway.
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
-    modImplementation "maven.modrinth:burning:${project.burning_version}"
-}
-
 processResources {
     inputs.property "mod_version", project.mod_version
     inputs.property "loader_version", project.loader_version
     inputs.property "minecraft_version", project.minecraft_version
-    inputs.property "fabric_version", project.fabric_version
-    inputs.property "burning_version", project.burning_version
 
     filesMatching("fabric.mod.json") {
          expand([
             'mod_version': project.mod_version,
             'loader_version': project.loader_version,
             'minecraft_version': project.minecraft_version,
-            'fabric_version': project.fabric_version,
-            'burning_version': project.burning_version
         ])
     }
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 21
+    it.options.release = 25
 }
 
 java {
@@ -90,8 +79,8 @@ java {
     // If you remove this line, sources will not be generated.
     withSourcesJar()
 
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 jar {
@@ -127,11 +116,11 @@ modrinth {
     changelog = "sh CHANGELOG.sh".execute().text
     versionType = "release"
     gameVersions = Arrays.asList("${project.game_versions}".toString().split(","))
-    uploadFile = remapJar
+    uploadFile = jar
     syncBodyFrom = "sh README.sh".execute().text
     dependencies {
         required.project "fabric-api"
         required.project "burning"
     }
-    // debugMode = true
+    debugMode = true
 }

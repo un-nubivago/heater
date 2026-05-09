@@ -3,6 +3,8 @@ package niv.heater.screen;
 import static net.minecraft.world.inventory.FurnaceFuelSlot.isBucket;
 import static niv.burning.api.FuelVariant.isFuel;
 
+import org.jspecify.annotations.NullMarked;
+
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -15,6 +17,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import niv.heater.registry.HeaterMenus;
 
+@NullMarked
 public class HeaterMenu extends AbstractContainerMenu {
 
     public static final int SLOT_COUNT = 1;

@@ -1,5 +1,7 @@
 package niv.heater.block;
 
+import org.jspecify.annotations.NullMarked;
+
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -10,9 +12,10 @@ import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
+@NullMarked
 public class WeatheringHeatPipeBlock extends HeatPipeBlock implements WeatheringCopper {
 
-    @SuppressWarnings("java:S1845")
+    @SuppressWarnings({ "null", "java:S1845" })
     public static final MapCodec<WeatheringHeatPipeBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
             .group(
                     WeatherState.CODEC.fieldOf("weathering_state").forGetter(WeatheringHeatPipeBlock::getAge),

@@ -8,6 +8,7 @@ import static net.minecraft.client.data.models.BlockModelGenerators.Y_ROT_270;
 import static net.minecraft.client.data.models.BlockModelGenerators.Y_ROT_90;
 import static net.minecraft.client.data.models.BlockModelGenerators.condition;
 import static net.minecraft.client.data.models.model.TexturedModel.ORIENTABLE_ONLY_TOP;
+import static net.minecraft.resources.Identifier.fromNamespaceAndPath;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.DOWN;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.EAST;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT;
@@ -22,14 +23,17 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootSubProvider;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider.BlockTagProvider;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.blockstates.MultiPartGenerator;
@@ -39,16 +43,16 @@ import net.minecraft.client.data.models.model.ModelTemplate;
 import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.data.models.model.TextureSlot;
 import net.minecraft.client.data.models.model.TexturedModel;
-import net.minecraft.client.renderer.block.model.VariantMutator;
+import net.minecraft.client.renderer.block.dispatch.VariantMutator;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -58,6 +62,7 @@ import niv.heater.block.entity.HeaterBlockEntity;
 import niv.heater.registry.HeaterBlocks;
 import niv.heater.registry.HeaterTabs;
 
+@NullMarked
 public class HeaterDataGenerator implements DataGeneratorEntrypoint {
 
     @Override
@@ -85,9 +90,10 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
         public static final ModelTemplate PIPE_ARM = create("pipe_arm", "_arm",
                 TextureSlot.TEXTURE);
 
-        private static ModelTemplate create(String template, String suffix, TextureSlot... textureSlots) {
+        @SuppressWarnings("null")
+        private static ModelTemplate create(String template, @Nullable String suffix, TextureSlot... textureSlots) {
             return new ModelTemplate(
-                    Optional.of(ResourceLocation.tryBuild(MOD_ID, "block/" + template)),
+                    Optional.of(fromNamespaceAndPath(MOD_ID, "block/" + template)),
                     Optional.ofNullable(suffix),
                     textureSlots);
         }
@@ -104,7 +110,6 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
                 .select(Direction.SOUTH, Y_ROT_180)
                 .select(Direction.WEST, Y_ROT_270);
 
-
         private static final PropertyDispatch<VariantMutator> ROTATION_HORIZONTAL_FACING = PropertyDispatch
                 .modify(BlockStateProperties.HORIZONTAL_FACING)
                 .select(Direction.NORTH, NOP)
@@ -112,18 +117,23 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
                 .select(Direction.SOUTH, Y_ROT_180)
                 .select(Direction.WEST, Y_ROT_270);
 
-
+        @SuppressWarnings("null")
         private static final TexturedModel.Provider THERMOSTAT = TexturedModel
                 .createDefault(HeaterModelProvider::orientableFullTilt, HeaterModelTemplates.THERMOSTAT);
+
+        @SuppressWarnings("null")
         private static final TexturedModel.Provider PIPE_CORE = TexturedModel
                 .createDefault(HeaterModelProvider::pipeCore, HeaterModelTemplates.PIPE_CORE);
+
+        @SuppressWarnings("null")
         private static final TexturedModel.Provider PIPE_ARM = TexturedModel
                 .createDefault(HeaterModelProvider::pipeArm, HeaterModelTemplates.PIPE_ARM);
 
-        public HeaterModelProvider(FabricDataOutput output) {
+        public HeaterModelProvider(FabricPackOutput output) {
             super(output);
         }
 
+        @SuppressWarnings("null")
         @Override
         public void generateBlockStateModels(BlockModelGenerators generator) {
             HeaterBlocks.HEATER.waxedMapping()
@@ -223,7 +233,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
 
     private static class HeaterEnglishLanguageProvider extends FabricLanguageProvider {
 
-        private HeaterEnglishLanguageProvider(FabricDataOutput dataOutput, CompletableFuture<Provider> registryLookup) {
+        private HeaterEnglishLanguageProvider(FabricPackOutput dataOutput, CompletableFuture<Provider> registryLookup) {
             super(dataOutput, registryLookup);
         }
 
@@ -249,12 +259,13 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
         }
     }
 
-    private static class HeaterLootTableProvider extends FabricBlockLootTableProvider {
+    private static class HeaterLootTableProvider extends FabricBlockLootSubProvider {
 
-        private HeaterLootTableProvider(FabricDataOutput dataOutput, CompletableFuture<Provider> registryLookup) {
+        private HeaterLootTableProvider(FabricPackOutput dataOutput, CompletableFuture<Provider> registryLookup) {
             super(dataOutput, registryLookup);
         }
 
+        @SuppressWarnings("null")
         @Override
         public void generate() {
             HeaterBlocks.HEATER.forEach(block -> this.add(block, this::createNameableBlockEntityTable));
@@ -265,7 +276,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
 
     private static final class HeaterRecipeProvider extends FabricRecipeProvider {
 
-        public HeaterRecipeProvider(FabricDataOutput output, CompletableFuture<Provider> registriesFuture) {
+        public HeaterRecipeProvider(FabricPackOutput output, CompletableFuture<Provider> registriesFuture) {
             super(output, registriesFuture);
         }
 
@@ -323,6 +334,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             generateWaxingRecipe(HeaterBlocks.THERMOSTAT);
         }
 
+        @SuppressWarnings("null")
         private void generateWaxingRecipe(WeatheringCopperBlocks blocks) {
             blocks.waxedMapping().forEach((block, waxed) -> shapeless(RecipeCategory.MISC, waxed)
                     .requires(block).requires(Items.HONEYCOMB)
@@ -332,10 +344,10 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
         }
     }
 
-    private static class HeaterTagProvider extends BlockTagProvider {
+    private static class HeaterTagProvider extends FabricTagsProvider<Block> {
 
-        public HeaterTagProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
-            super(output, registriesFuture);
+        public HeaterTagProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+            super(output, Registries.BLOCK, registriesFuture);
         }
 
         @Override
@@ -347,6 +359,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
                     .setReplace(false);
         }
 
+        @SuppressWarnings("null")
         private Stream<ResourceKey<Block>> getResourceKeys(WeatheringCopperBlocks blocks) {
             var list = new ArrayList<Block>(8);
             blocks.forEach(list::add);

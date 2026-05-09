@@ -4,9 +4,10 @@ import static net.minecraft.world.inventory.FurnaceFuelSlot.isBucket;
 import static niv.burning.api.FuelVariant.isFuel;
 import static niv.heater.Heater.MOD_ID;
 
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ContainerStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
@@ -33,6 +34,7 @@ import niv.heater.block.HeaterBlock;
 import niv.heater.registry.HeaterBlockEntityTypes;
 import niv.heater.screen.HeaterMenu;
 
+@NullMarked
 public class HeaterBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
 
     public static final String CONTAINER_NAME;
@@ -88,8 +90,9 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
         }
     };
 
-    private final InventoryStorage[] wrappers = new InventoryStorage[7];
+    private final ContainerStorage[] wrappers = new ContainerStorage[7];
 
+    @SuppressWarnings("null")
     private NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
 
     public HeaterBlockEntity(BlockPos pos, BlockState state) {
@@ -112,7 +115,7 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
         var resource = this.burningStorage.getResource();
         var amount = this.burningStorage.getAmount();
 
-        if (resource.isBlank() || this.burningStorage.getAmount() <= 0)
+        if (resource == null || resource.isBlank() || this.burningStorage.getAmount() <= 0)
             return false;
 
         try (var nested = Transaction.openNested(transaction)) {
@@ -139,7 +142,7 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
 
         if (fuelStack.isEmpty()) {
             var bucketItem = fuelItem.getCraftingRemainder();
-            this.setItem(0, bucketItem == null ? ItemStack.EMPTY : bucketItem);
+            this.setItem(0, bucketItem == null ? ItemStack.EMPTY : bucketItem.create());
         }
 
         return this.burningStorage.insert(resource, resource.getDuration(), transaction) > 0;
@@ -149,12 +152,14 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
         return this.burningStorage;
     }
 
-    public InventoryStorage getInventoryStorage(@Nullable Direction side) {
-        InventoryStorage.of(this, side);
+    public ContainerStorage getInventoryStorage(@Nullable Direction side) {
         var index = side == null ? 6 : side.ordinal();
-        if (wrappers[index] == null)
-            wrappers[index] = InventoryStorage.of(this, side);
-        return wrappers[index];
+        var result = wrappers[index];
+        if (result != null)
+            return result;
+        result = ContainerStorage.of(this, side);
+        wrappers[index] = result;
+        return result;
     }
 
     @Override
@@ -186,14 +191,14 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     protected void loadAdditional(ValueInput valueInput) {
         super.loadAdditional(valueInput);
         ContainerHelper.loadAllItems(valueInput, this.items);
-        SingleVariantStorage.readData(this.burningStorage, FuelVariant.CODEC, FuelVariant::blank, valueInput);
+        SingleVariantStorage.readValue(this.burningStorage, FuelVariant.CODEC, FuelVariant::blank, valueInput);
     }
 
     @Override
     protected void saveAdditional(ValueOutput valueOutput) {
         super.saveAdditional(valueOutput);
         ContainerHelper.saveAllItems(valueOutput, this.items);
-        SingleVariantStorage.writeData(this.burningStorage, FuelVariant.CODEC, valueOutput);
+        SingleVariantStorage.writeValue(this.burningStorage, FuelVariant.CODEC, valueOutput);
     }
 
     @Override
@@ -213,7 +218,7 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     }
 
     @Override
-    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction direction) {
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction direction) {
         return canPlaceItem(slot, stack);
     }
 

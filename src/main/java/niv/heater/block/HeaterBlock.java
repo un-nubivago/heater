@@ -1,6 +1,10 @@
 package niv.heater.block;
 
-import org.jetbrains.annotations.Nullable;
+import static java.util.Objects.requireNonNull;
+
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import com.mojang.serialization.MapCodec;
 
@@ -27,15 +31,17 @@ import niv.heater.block.entity.HeaterBlockEntity;
 import niv.heater.registry.HeaterBlockEntityTypes;
 import niv.heater.registry.HeaterBlocks;
 
+@NullMarked
 public class HeaterBlock extends AbstractFurnaceBlock {
 
-    @SuppressWarnings("java:S1845")
+    @SuppressWarnings({ "null", "java:S1845" })
     public static final MapCodec<HeaterBlock> CODEC = simpleCodec(HeaterBlock::new);
 
     public HeaterBlock(Properties properties) {
         super(properties);
     }
 
+    @SuppressWarnings("null")
     public WeatherState getAge() {
         return ((WeatheringCopper) HeaterBlocks.HEATER.waxedMapping().inverse()
                 .getOrDefault(this, HeaterBlocks.HEATER.unaffected())).getAge();
@@ -43,6 +49,11 @@ public class HeaterBlock extends AbstractFurnaceBlock {
 
     public InsertionOnlyStorage<FuelVariant> getStatelessStorage(Level level, BlockPos pos) {
         return (resource, maxAmount, transaction) -> {
+            if (resource == null)
+                return 0L;
+
+            requireNonNull(transaction);
+
             StoragePreconditions.notBlankNotNegative(resource, maxAmount);
 
             var inserted = this.getAge().ordinal() + 1;
@@ -50,7 +61,7 @@ public class HeaterBlock extends AbstractFurnaceBlock {
             if (inserted >= maxAmount)
                 return maxAmount;
 
-            var dirs = getConnectedDirection(level.random);
+            var dirs = getConnectedDirection(level.getRandom());
 
             for (int i = 0; i < dirs.length && inserted < maxAmount; i++) {
                 var dir = dirs[i];
@@ -63,7 +74,7 @@ public class HeaterBlock extends AbstractFurnaceBlock {
         };
     }
 
-    private Direction[] getConnectedDirection(@Nullable RandomSource random) {
+    private @NonNull Direction[] getConnectedDirection(@Nullable RandomSource random) {
         var result = Direction.values();
         if (result.length >= 1 && random != null) {
             for (var i = result.length - 1; i > 0; i--) {
@@ -93,8 +104,9 @@ public class HeaterBlock extends AbstractFurnaceBlock {
         }
     }
 
+    @SuppressWarnings("java:S2638")
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(
             Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide() ? null
                 : createTickerHelper(type, HeaterBlockEntityTypes.HEATER, HeaterBlockEntity::tick);

@@ -1,17 +1,20 @@
 package niv.heater.block;
 
+import static java.util.Objects.requireNonNull;
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import com.mojang.serialization.MapCodec;
 
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -33,16 +36,19 @@ import niv.burning.api.BurningStorage;
 import niv.burning.api.FuelVariant;
 import niv.heater.registry.HeaterBlocks;
 
+@NullMarked
 public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
 
-    @SuppressWarnings("java:S1845")
+    @SuppressWarnings({ "null", "java:S1845" })
     public static final MapCodec<HeatPipeBlock> CODEC = simpleCodec(HeatPipeBlock::new);
 
+    @SuppressWarnings("null")
     private static final ThreadLocal<Set<Pair<Level, BlockPos>>> EXPLORED_SET = ThreadLocal.withInitial(HashSet::new);
 
+    @SuppressWarnings("null")
     public HeatPipeBlock(Properties settings) {
         super(6.0F, settings);
-        this.registerDefaultState(stateDefinition.any()
+        this.registerDefaultState(this.stateDefinition.any()
                 .setValue(DOWN, false)
                 .setValue(UP, false)
                 .setValue(NORTH, false)
@@ -52,39 +58,52 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
                 .setValue(WATERLOGGED, false));
     }
 
+    @SuppressWarnings("null")
     public WeatherState getAge() {
         return ((WeatheringCopper) HeaterBlocks.HEAT_PIPE.waxedMapping().inverse()
                 .getOrDefault(this, HeaterBlocks.HEAT_PIPE.unaffected())).getAge();
     }
 
     public InsertionOnlyStorage<FuelVariant> getStatelessStorage(Level level, BlockPos pos, BlockState state) {
-        return (resource, maxAmount, transaction) -> {
-            StoragePreconditions.notBlankNotNegative(resource, maxAmount);
-
-            if (tryAdd(level, pos)) {
-                transaction.addOuterCloseCallback(result -> doRemove(level, pos));
-            } else {
-                return 0L;
-            }
-
-            var inserted = this.getAge().ordinal() + 1;
-
-            if (inserted >= maxAmount)
-                return maxAmount;
-
-            var dirs = getConnectedDirection(state, level.random);
-
-            for (int i = 0; i < dirs.length && inserted < maxAmount; i++) {
-                var dir = dirs[i];
-                var storage = BurningStorage.SIDED.find(level, pos.relative(dir), dir.getOpposite());
-                if (storage != null && storage.supportsInsertion())
-                    inserted += storage.insert(resource, maxAmount - inserted, transaction);
-            }
-
-            return inserted;
-        };
+        return (resource, maxAmount, transaction) -> tryInsert(
+                level, pos, state,
+                resource, maxAmount, requireNonNull(transaction));
     }
 
+    public long tryInsert(
+            Level level, BlockPos pos, BlockState state,
+            @Nullable FuelVariant resource, long maxAmount, TransactionContext transaction) {
+        if (resource == null)
+            return 0L;
+
+        StoragePreconditions.notBlankNotNegative(resource, maxAmount);
+
+        if (tryAdd(level, pos)) {
+            transaction.addOuterCloseCallback(result -> doRemove(level, pos));
+        } else {
+            return 0L;
+        }
+
+        var inserted = this.getAge().ordinal() + 1;
+
+        if (inserted >= maxAmount)
+            return maxAmount;
+
+        var dirs = getConnectedDirection(state, level.getRandom());
+
+        for (int i = 0; i < dirs.length && inserted < maxAmount; i++) {
+            var dir = dirs[i];
+            if (dir == null)
+                continue;
+            var storage = BurningStorage.SIDED.find(level, pos.relative(dir), dir.getOpposite());
+            if (storage != null && storage.supportsInsertion())
+                inserted += storage.insert(resource, maxAmount - inserted, transaction);
+        }
+
+        return inserted;
+    }
+
+    @SuppressWarnings("null")
     private boolean tryAdd(Level level, BlockPos pos) {
         return EXPLORED_SET.get().add(Pair.of(level, pos));
     }
@@ -95,8 +114,8 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
             EXPLORED_SET.remove();
     }
 
-    private Direction[] getConnectedDirection(
-            BlockState state, @Nullable RandomSource random) {
+    private Direction[] getConnectedDirection(BlockState state, @Nullable RandomSource random) {
+        @SuppressWarnings("null")
         var result = Direction.stream()
                 .filter(value -> state.getValueOrElse(PROPERTY_BY_DIRECTION.get(value), false).booleanValue())
                 .toArray(Direction[]::new);
@@ -136,6 +155,7 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
         return false;
     }
 
+    @SuppressWarnings("null")
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         var level = context.getLevel();
@@ -150,6 +170,7 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
                 .trySetValue(WATERLOGGED, level.getFluidState(pos).is(Fluids.WATER));
     }
 
+    @SuppressWarnings("null")
     @Override
     protected BlockState updateShape(
             BlockState state, LevelReader level, ScheduledTickAccess scheduler, BlockPos pos,

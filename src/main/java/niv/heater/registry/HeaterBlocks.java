@@ -1,5 +1,6 @@
 package niv.heater.registry;
 
+import static net.minecraft.resources.Identifier.fromNamespaceAndPath;
 import static net.minecraft.world.level.block.Blocks.COPPER_BLOCK;
 import static net.minecraft.world.level.block.Blocks.FURNACE;
 import static net.minecraft.world.level.block.state.BlockBehaviour.Properties.ofFullCopy;
@@ -8,12 +9,14 @@ import static niv.heater.Heater.MOD_ID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+
 import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -28,6 +31,7 @@ import niv.heater.block.WeatheringHeatPipeBlock;
 import niv.heater.block.WeatheringHeaterBlock;
 import niv.heater.block.WeatheringThermostatBlock;
 
+@NullMarked
 public class HeaterBlocks {
     private HeaterBlocks() {
     }
@@ -49,23 +53,25 @@ public class HeaterBlocks {
 
     private static <A extends Block, B extends Block & WeatheringCopper> WeatheringCopperBlocks register(
             String name,
-            Function<Properties, A> waxedConstructor,
-            BiFunction<WeatherState, Properties, B> weatheredConstructor,
-            Function<WeatherState, Properties> propertiesBuilder) {
+            Function<@NonNull Properties, @NonNull A> waxedConstructor,
+            BiFunction<@NonNull WeatherState, @NonNull Properties, @NonNull B> weatheredConstructor,
+            Function<@NonNull WeatherState, @NonNull Properties> propertiesBuilder) {
+        @SuppressWarnings("null")
         var result = WeatheringCopperBlocks.create(name, HeaterBlocks::register,
                 waxedConstructor, weatheredConstructor, propertiesBuilder);
-        OxidizableBlocksRegistry.registerCopperBlockSet(result);
+        OxidizableBlocksRegistry.registerWeatheringCopperBlocks(result);
         return result;
     }
 
+    @SuppressWarnings("null")
     private static final <T extends Block> T register(
-            String name, Function<Properties, T> constructor, Properties properties) {
+            String name, Function<@NonNull Properties, @NonNull T> constructor, Properties properties) {
 
-        var blockKey = ResourceKey.create(Registries.BLOCK, ResourceLocation.tryBuild(MOD_ID, name));
+        var blockKey = ResourceKey.create(Registries.BLOCK, fromNamespaceAndPath(MOD_ID, name));
         var block = Registry.register(BuiltInRegistries.BLOCK, blockKey,
                 constructor.apply(properties.setId(blockKey)));
 
-        var itemKey = ResourceKey.create(Registries.ITEM, ResourceLocation.tryBuild(MOD_ID, name));
+        var itemKey = ResourceKey.create(Registries.ITEM, fromNamespaceAndPath(MOD_ID, name));
         Registry.register(BuiltInRegistries.ITEM, itemKey,
                 new BlockItem(block, new Item.Properties().useBlockDescriptionPrefix().setId(itemKey)));
 

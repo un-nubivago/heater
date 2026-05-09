@@ -1,5 +1,7 @@
 package niv.heater.registry;
 
+import org.jspecify.annotations.NullMarked;
+
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.world.level.block.Block;
 import niv.burning.api.BurningStorage;
@@ -7,6 +9,8 @@ import niv.heater.block.HeatPipeBlock;
 import niv.heater.block.entity.HeaterBlockEntity;
 import niv.heater.block.entity.ThermostatBlockEntity;
 
+@SuppressWarnings("null")
+@NullMarked
 public class HeaterRegistrar {
     private HeaterRegistrar() {
     }
