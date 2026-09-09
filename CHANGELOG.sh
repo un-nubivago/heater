@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /usr/bin/env sh
 
 VERSION=`grep mod_version gradle.properties | cut -d'=' -f2 | cut -d'+' -f1`
 

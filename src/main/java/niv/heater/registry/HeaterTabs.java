@@ -36,7 +36,7 @@ public class HeaterTabs {
                 BuiltInRegistries.CREATIVE_MODE_TAB,
                 fromNamespaceAndPath(MOD_ID, "tab"),
                 FabricCreativeModeTab.builder()
-                        .icon(HeaterBlocks.HEATER.waxed().asItem()::getDefaultInstance)
+                        .icon(HeaterBlocks.HEATER.waxed().unaffected().asItem()::getDefaultInstance)
                         .title(Component.translatable(TAB_NAME))
                         .displayItems((parameters, output) -> all.stream().map(Block::asItem).forEach(output::accept))
                         .build());

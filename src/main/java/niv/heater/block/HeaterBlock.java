@@ -19,7 +19,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AbstractFurnaceBlock;
-import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.WeatheringCopper.WeatherState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -41,10 +40,12 @@ public class HeaterBlock extends AbstractFurnaceBlock {
         super(properties);
     }
 
-    @SuppressWarnings("null")
     public WeatherState getAge() {
-        return ((WeatheringCopper) HeaterBlocks.HEATER.waxedMapping().inverse()
-                .getOrDefault(this, HeaterBlocks.HEATER.unaffected())).getAge();
+        for (var state : WeatherState.values()) {
+            if (this == HeaterBlocks.HEATER.waxed().pick(state))
+                return state;
+        }
+        return WeatherState.UNAFFECTED;
     }
 
     public InsertionOnlyStorage<FuelVariant> getStatelessStorage(Level level, BlockPos pos) {

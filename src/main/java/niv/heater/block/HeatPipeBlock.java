@@ -25,7 +25,6 @@ import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
-import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.WeatheringCopper.WeatherState;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -58,10 +57,12 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
                 .setValue(WATERLOGGED, false));
     }
 
-    @SuppressWarnings("null")
     public WeatherState getAge() {
-        return ((WeatheringCopper) HeaterBlocks.HEAT_PIPE.waxedMapping().inverse()
-                .getOrDefault(this, HeaterBlocks.HEAT_PIPE.unaffected())).getAge();
+        for (var state : WeatherState.values()) {
+            if (this == HeaterBlocks.HEATER.waxed().pick(state))
+                return state;
+        }
+        return WeatherState.UNAFFECTED;
     }
 
     public InsertionOnlyStorage<FuelVariant> getStatelessStorage(Level level, BlockPos pos, BlockState state) {

@@ -1,5 +1,6 @@
 package niv.heater.block;
 
+import static niv.burning.api.FuelVariant.isFuel;
 import static niv.heater.registry.HeaterBlockEntityTypes.THERMOSTAT;
 
 import org.jspecify.annotations.NullMarked;
@@ -21,7 +22,6 @@ import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
-import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.WeatheringCopper.WeatherState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -29,8 +29,6 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
 import niv.heater.block.entity.ThermostatBlockEntity;
 import niv.heater.registry.HeaterBlocks;
-
-import static niv.burning.api.FuelVariant.isFuel;
 
 @NullMarked
 public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
@@ -44,10 +42,12 @@ public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
-    @SuppressWarnings("null")
     public WeatherState getAge() {
-        return ((WeatheringCopper) HeaterBlocks.THERMOSTAT.waxedMapping().inverse()
-                .getOrDefault(this, HeaterBlocks.THERMOSTAT.unaffected())).getAge();
+        for (var state : WeatherState.values()) {
+            if (this == HeaterBlocks.HEATER.waxed().pick(state))
+                return state;
+        }
+        return WeatherState.UNAFFECTED;
     }
 
     @Override

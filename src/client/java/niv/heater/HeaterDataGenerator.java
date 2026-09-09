@@ -56,7 +56,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.WeatheringCopperBlocks;
+import net.minecraft.world.level.block.WeatheringCopperCollection;
+import net.minecraft.world.level.block.WeatheringCopper.WeatherState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import niv.heater.block.entity.HeaterBlockEntity;
 import niv.heater.registry.HeaterBlocks;
@@ -136,12 +137,17 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
         @SuppressWarnings("null")
         @Override
         public void generateBlockStateModels(BlockModelGenerators generator) {
-            HeaterBlocks.HEATER.waxedMapping()
-                    .forEach((block, waxed) -> createWaxingFurnace(generator, block, waxed));
-            HeaterBlocks.THERMOSTAT.waxedMapping()
-                    .forEach((block, waxed) -> createWaxingOrientable(generator, block, waxed));
-            HeaterBlocks.HEAT_PIPE.waxedMapping()
-                    .forEach((block, waxed) -> createWaxingPipe(generator, block, waxed));
+            for (var state : WeatherState.values()) {
+                createWaxingFurnace(generator,
+                        HeaterBlocks.HEATER.weathering().pick(state),
+                        HeaterBlocks.HEATER.waxed().pick(state));
+                createWaxingOrientable(generator,
+                        HeaterBlocks.THERMOSTAT.weathering().pick(state),
+                        HeaterBlocks.THERMOSTAT.waxed().pick(state));
+                createWaxingPipe(generator,
+                        HeaterBlocks.HEAT_PIPE.weathering().pick(state),
+                        HeaterBlocks.HEAT_PIPE.waxed().pick(state));
+            }
         }
 
         @Override
@@ -247,15 +253,16 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             builder.add(HeaterTabs.TAB_NAME, Heater.MOD_NAME);
         }
 
-        private void addAll(TranslationBuilder builder, String name, WeatheringCopperBlocks blocks) {
-            builder.add(blocks.unaffected(), name);
-            builder.add(blocks.exposed(), "Exposed " + name);
-            builder.add(blocks.weathered(), "Weathered " + name);
-            builder.add(blocks.oxidized(), "Oxidized " + name);
-            builder.add(blocks.waxed(), "Waxed " + name);
-            builder.add(blocks.waxedExposed(), "Waxed Exposed " + name);
-            builder.add(blocks.waxedWeathered(), "Waxed Weathered " + name);
-            builder.add(blocks.waxedOxidized(), "Waxed Oxidized " + name);
+        @SuppressWarnings("null")
+        private void addAll(TranslationBuilder builder, String name, WeatheringCopperCollection<Block> blocks) {
+            builder.add(blocks.weathering().unaffected(), name);
+            builder.add(blocks.weathering().exposed(), "Exposed " + name);
+            builder.add(blocks.weathering().weathered(), "Weathered " + name);
+            builder.add(blocks.weathering().oxidized(), "Oxidized " + name);
+            builder.add(blocks.waxed().unaffected(), "Waxed " + name);
+            builder.add(blocks.waxed().exposed(), "Waxed Exposed " + name);
+            builder.add(blocks.waxed().weathered(), "Waxed Weathered " + name);
+            builder.add(blocks.waxed().oxidized(), "Waxed Oxidized " + name);
         }
     }
 
@@ -297,9 +304,10 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             super(registries, output);
         }
 
+        @SuppressWarnings("null")
         @Override
         public void buildRecipes() {
-            shaped(RecipeCategory.MISC, HeaterBlocks.HEATER.unaffected())
+            shaped(RecipeCategory.MISC, HeaterBlocks.HEATER.weathering().unaffected())
                     .pattern("ccc")
                     .pattern("cfc")
                     .pattern("ccc")
@@ -311,7 +319,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
 
             generateWaxingRecipe(HeaterBlocks.HEATER);
 
-            shaped(RecipeCategory.MISC, HeaterBlocks.HEAT_PIPE.unaffected())
+            shaped(RecipeCategory.MISC, HeaterBlocks.HEAT_PIPE.weathering().unaffected())
                     .pattern("ccc")
                     .define('c', Items.COPPER_INGOT)
                     .unlockedBy(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
@@ -319,7 +327,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
 
             generateWaxingRecipe(HeaterBlocks.HEAT_PIPE);
 
-            shaped(RecipeCategory.MISC, HeaterBlocks.THERMOSTAT.unaffected())
+            shaped(RecipeCategory.MISC, HeaterBlocks.THERMOSTAT.weathering().unaffected())
                     .pattern("ccc")
                     .pattern("#c#")
                     .pattern("#r#")
@@ -335,12 +343,16 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
         }
 
         @SuppressWarnings("null")
-        private void generateWaxingRecipe(WeatheringCopperBlocks blocks) {
-            blocks.waxedMapping().forEach((block, waxed) -> shapeless(RecipeCategory.MISC, waxed)
-                    .requires(block).requires(Items.HONEYCOMB)
-                    .unlockedBy(getHasName(block), has(block))
-                    .unlockedBy(getHasName(Items.HONEYCOMB), has(Items.HONEYCOMB))
-                    .save(output));
+        private void generateWaxingRecipe(WeatheringCopperCollection<Block> blocks) {
+            for (var state : WeatherState.values()) {
+                var block = blocks.weathering().pick(state);
+                var waxed = blocks.waxed().pick(state);
+                shapeless(RecipeCategory.MISC, waxed)
+                        .requires(block).requires(Items.HONEYCOMB)
+                        .unlockedBy(getHasName(block), has(block))
+                        .unlockedBy(getHasName(Items.HONEYCOMB), has(Items.HONEYCOMB))
+                        .save(output);
+            }
         }
     }
 
@@ -360,7 +372,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
         }
 
         @SuppressWarnings("null")
-        private Stream<ResourceKey<Block>> getResourceKeys(WeatheringCopperBlocks blocks) {
+        private Stream<ResourceKey<Block>> getResourceKeys(WeatheringCopperCollection<Block> blocks) {
             var list = new ArrayList<Block>(8);
             blocks.forEach(list::add);
             return list.stream()
