@@ -60,6 +60,7 @@ import net.minecraft.world.level.block.WeatheringCopperCollection;
 import net.minecraft.world.level.block.WeatheringCopper.WeatherState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import niv.heater.block.entity.HeaterBlockEntity;
+import niv.heater.registry.HeaterBlockItemIds;
 import niv.heater.registry.HeaterBlocks;
 import niv.heater.registry.HeaterTabs;
 
@@ -68,6 +69,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
 
     @Override
     public void onInitializeDataGenerator(FabricDataGenerator fabricDataGenerator) {
+        HeaterBlockItemIds.initialize();
         HeaterBlocks.initialize();
         HeaterTabs.initialize();
 

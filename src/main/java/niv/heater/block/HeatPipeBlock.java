@@ -59,7 +59,7 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
 
     public WeatherState getAge() {
         for (var state : WeatherState.values()) {
-            if (this == HeaterBlocks.HEATER.waxed().pick(state))
+            if (this == HeaterBlocks.HEAT_PIPE.waxed().pick(state))
                 return state;
         }
         return WeatherState.UNAFFECTED;

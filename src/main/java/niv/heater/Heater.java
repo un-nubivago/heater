@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import net.fabricmc.api.ModInitializer;
 import niv.heater.registry.HeaterBlockEntityTypes;
+import niv.heater.registry.HeaterBlockItemIds;
 import niv.heater.registry.HeaterBlocks;
 import niv.heater.registry.HeaterMenus;
 import niv.heater.registry.HeaterRegistrar;
@@ -28,6 +29,7 @@ public class Heater implements ModInitializer {
 
         LOGGER.info("Initialize");
 
+        HeaterBlockItemIds.initialize();
         HeaterBlocks.initialize();
         HeaterBlockEntityTypes.initialize();
         HeaterRegistrar.initialize();

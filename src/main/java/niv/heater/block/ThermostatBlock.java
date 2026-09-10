@@ -44,7 +44,7 @@ public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
 
     public WeatherState getAge() {
         for (var state : WeatherState.values()) {
-            if (this == HeaterBlocks.HEATER.waxed().pick(state))
+            if (this == HeaterBlocks.THERMOSTAT.waxed().pick(state))
                 return state;
         }
         return WeatherState.UNAFFECTED;

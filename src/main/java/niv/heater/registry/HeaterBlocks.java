@@ -3,11 +3,12 @@ package niv.heater.registry;
 import static net.minecraft.world.level.block.Blocks.FURNACE;
 import static net.minecraft.world.level.block.state.BlockBehaviour.Properties.ofFullCopy;
 
-import java.util.function.Function;
-
 import org.jspecify.annotations.NullMarked;
 
-import net.minecraft.references.BlockItemId;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
@@ -18,8 +19,10 @@ import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
 import niv.heater.block.HeatPipeBlock;
 import niv.heater.block.HeaterBlock;
+import niv.heater.block.ThermostatBlock;
 import niv.heater.block.WeatheringHeatPipeBlock;
 import niv.heater.block.WeatheringHeaterBlock;
+import niv.heater.block.WeatheringThermostatBlock;
 
 @NullMarked
 @SuppressWarnings("null")
@@ -32,26 +35,32 @@ public class HeaterBlocks {
     public static final WeatheringCopperCollection<Block> THERMOSTAT;
 
     static {
-        HEATER = WeatheringCopperCollection.registerBlocks(
-                HeaterBlockItemIds.HEATER, HeaterBlocks::register,
+        HEATER = WeatheringCopperCollection.registerBlocks(HeaterBlockItemIds.HEATER,
+                (id, factory, properties) -> Blocks.register(id.block(), factory, properties),
                 (state, properties) -> new HeaterBlock(properties), WeatheringHeaterBlock::new,
                 any -> ofFullCopy(FURNACE));
 
-        HEAT_PIPE = WeatheringCopperCollection.registerBlocks(
-                HeaterBlockItemIds.HEAT_PIPE, HeaterBlocks::register,
+        WeatheringCopperCollection.registerItems(HeaterBlockItemIds.HEATER, HEATER,
+                (id, block) -> Registry.register(BuiltInRegistries.ITEM, id.item(),
+                        new BlockItem(block, new Item.Properties().setId(id.item()))));
+
+        HEAT_PIPE = WeatheringCopperCollection.registerBlocks(HeaterBlockItemIds.HEAT_PIPE,
+                (id, factory, properties) -> Blocks.register(id.block(), factory, properties),
                 (state, properties) -> new HeatPipeBlock(properties), WeatheringHeatPipeBlock::new,
                 HeaterBlocks::getCopperProperties);
 
-        THERMOSTAT = WeatheringCopperCollection.registerBlocks(
-                HeaterBlockItemIds.THERMOSTAT, HeaterBlocks::register,
-                (state, properties) -> new HeatPipeBlock(properties), WeatheringHeatPipeBlock::new,
-                HeaterBlocks::getCopperProperties);
-    }
+        WeatheringCopperCollection.registerItems(HeaterBlockItemIds.HEAT_PIPE, HEAT_PIPE,
+                (id, block) -> Registry.register(BuiltInRegistries.ITEM, id.item(),
+                        new BlockItem(block, new Item.Properties().setId(id.item()))));
 
-    private static Block register(final BlockItemId id,
-            final Function<BlockBehaviour.Properties, Block> factory,
-            final BlockBehaviour.Properties properties) {
-        return Blocks.register(id.block(), factory, properties);
+        THERMOSTAT = WeatheringCopperCollection.registerBlocks(HeaterBlockItemIds.THERMOSTAT,
+                (id, factory, properties) -> Blocks.register(id.block(), factory, properties),
+                (state, properties) -> new ThermostatBlock(properties), WeatheringThermostatBlock::new,
+                HeaterBlocks::getCopperProperties);
+
+        WeatheringCopperCollection.registerItems(HeaterBlockItemIds.THERMOSTAT, THERMOSTAT,
+                (id, block) -> Registry.register(BuiltInRegistries.ITEM, id.item(),
+                        new BlockItem(block, new Item.Properties().setId(id.item()))));
     }
 
     private static BlockBehaviour.Properties getCopperProperties(WeatherState state) {
