@@ -1,5 +1,8 @@
 package niv.heater.block.entity;
 
+import static java.util.Objects.requireNonNull;
+import static niv.heater.Heater.MOD_ID;
+
 import java.util.List;
 
 import org.jspecify.annotations.NullMarked;
@@ -11,8 +14,14 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentGetter;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.component.DataComponentMap.Builder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.block.DirectionalBlock;
@@ -24,14 +33,24 @@ import niv.burning.api.BurningStorage;
 import niv.burning.api.FuelVariant;
 import niv.heater.block.ThermostatBlock;
 import niv.heater.registry.HeaterBlockEntityTypes;
-
-import static java.util.Objects.requireNonNull;
+import niv.heater.screen.ThermostatMenu;
 
 @NullMarked
-public class ThermostatBlockEntity extends BlockEntity {
+public class ThermostatBlockEntity extends BlockEntity implements MenuProvider {
 
-    private static final String TAG_FILTER = "filter";
+    public static final String CONTAINER_NAME;
 
+    private static final Component CONTAINER_TITLE;
+
+    private static final String TAG_FILTER;
+
+    static {
+        CONTAINER_NAME = "container." + MOD_ID + ".thermostat";
+        CONTAINER_TITLE = Component.translatable(CONTAINER_NAME);
+        TAG_FILTER = "filter";
+    }
+
+    @SuppressWarnings("null")
     private final ThreadLocal<Boolean> hasBeenExploredAlready = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     private FuelVariant filter = FuelVariant.BLANK;
@@ -97,7 +116,7 @@ public class ThermostatBlockEntity extends BlockEntity {
         return (resource, maxAmount, transaction) -> tryInsert(side, resource, maxAmount, requireNonNull(transaction));
     }
 
-    @SuppressWarnings("java:S2637")
+    @SuppressWarnings({ "null", "java:S2637" })
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
@@ -110,6 +129,7 @@ public class ThermostatBlockEntity extends BlockEntity {
         output.storeNullable(TAG_FILTER, FuelVariant.CODEC, this.filter);
     }
 
+    @SuppressWarnings("null")
     @Override
     protected void applyImplicitComponents(DataComponentGetter getter) {
         super.applyImplicitComponents(getter);
@@ -132,5 +152,27 @@ public class ThermostatBlockEntity extends BlockEntity {
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
         output.discard(TAG_FILTER);
+    }
+
+    @Override
+    public @Nullable AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
+        var proxy = new SimpleContainer(new ItemStack(this.filter.getFuel(), 1)) {
+            @Override
+            public void setChanged() {
+                super.setChanged();
+                var item = this.getItem(0);
+                if (item.isEmpty()) {
+                    ThermostatBlockEntity.this.unsetFilter();
+                } else {
+                    ThermostatBlockEntity.this.setFilter(item);
+                }
+            }
+        };
+        return new ThermostatMenu(containerId, inventory, proxy);
+    }
+
+    @Override
+    public Component getDisplayName() {
+        return CONTAINER_TITLE;
     }
 }

@@ -11,7 +11,9 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import niv.heater.screen.HeaterMenu;
+import niv.heater.screen.ThermostatMenu;
 
+@SuppressWarnings("null")
 @NullMarked
 public class HeaterMenus {
     private HeaterMenus() {
@@ -19,9 +21,14 @@ public class HeaterMenus {
 
     public static final MenuType<@NonNull HeaterMenu> HEATER;
 
+    public static final MenuType<@NonNull ThermostatMenu> THERMOSTAT;
+
     static {
         HEATER = Registry.register(BuiltInRegistries.MENU, fromNamespaceAndPath(MOD_ID, "heater"),
                 new MenuType<>(HeaterMenu::new, FeatureFlags.VANILLA_SET));
+
+        THERMOSTAT = Registry.register(BuiltInRegistries.MENU, fromNamespaceAndPath(MOD_ID, "thermostat"),
+                new MenuType<>(ThermostatMenu::new, FeatureFlags.VANILLA_SET));
     }
 
     public static final void initialize() {

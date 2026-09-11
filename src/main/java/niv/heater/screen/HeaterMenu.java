@@ -36,20 +36,9 @@ public class HeaterMenu extends AbstractContainerMenu {
         checkContainerDataCount(containerData, 2);
         this.container = container;
         this.containerData = containerData;
-
-        addSlot(new FuelSlot(container, 0, 80, 44));
-
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 9; j++) {
-                addSlot(new Slot(inventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
-            }
-        }
-
-        for (int i = 0; i < 9; i++) {
-            addSlot(new Slot(inventory, i, 8 + i * 18, 142));
-        }
-
-        addDataSlots(containerData);
+        this.addSlot(new FuelSlot(container, 0, 80, 44));
+        this.addStandardInventorySlots(inventory, 8, 84);
+        this.addDataSlots(containerData);
     }
 
     @Override

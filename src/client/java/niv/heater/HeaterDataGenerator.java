@@ -1,5 +1,6 @@
 package niv.heater;
 
+import static java.util.Objects.requireNonNull;
 import static net.minecraft.client.data.models.BlockModelGenerators.NOP;
 import static net.minecraft.client.data.models.BlockModelGenerators.X_ROT_270;
 import static net.minecraft.client.data.models.BlockModelGenerators.X_ROT_90;
@@ -58,10 +59,11 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.WeatheringCopperCollection;
 import net.minecraft.world.level.block.WeatheringCopper.WeatherState;
+import net.minecraft.world.level.block.WeatheringCopperCollection;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import niv.heater.block.entity.HeaterBlockEntity;
+import niv.heater.block.entity.ThermostatBlockEntity;
 import niv.heater.registry.HeaterBlockItemIds;
 import niv.heater.registry.HeaterBlocks;
 import niv.heater.registry.HeaterTabs;
@@ -95,6 +97,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
         public static final ModelTemplate PIPE_ARM = create("pipe_arm", "_arm",
                 TextureSlot.TEXTURE);
 
+        @SuppressWarnings("null")
         private static ModelTemplate create(String template, @Nullable String suffix, TextureSlot... textureSlots) {
             return new ModelTemplate(
                     Optional.of(fromNamespaceAndPath(MOD_ID, "block/" + template)),
@@ -121,12 +124,15 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
                 .select(Direction.SOUTH, Y_ROT_180)
                 .select(Direction.WEST, Y_ROT_270);
 
+        @SuppressWarnings("null")
         private static final TexturedModel.Provider THERMOSTAT = TexturedModel
                 .createDefault(HeaterModelProvider::thermostatFullTilt, HeaterModelTemplates.THERMOSTAT);
 
+        @SuppressWarnings("null")
         private static final TexturedModel.Provider PIPE_CORE = TexturedModel
                 .createDefault(HeaterModelProvider::pipeCore, HeaterModelTemplates.PIPE_CORE);
 
+        @SuppressWarnings("null")
         private static final TexturedModel.Provider PIPE_ARM = TexturedModel
                 .createDefault(HeaterModelProvider::pipeArm, HeaterModelTemplates.PIPE_ARM);
 
@@ -134,6 +140,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             super(output);
         }
 
+        @SuppressWarnings("null")
         @Override
         public void generateBlockStateModels(BlockModelGenerators generator) {
             for (var state : WeatherState.values()) {
@@ -258,6 +265,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             addAll(builder, "Thermostat", HeaterBlocks.THERMOSTAT);
 
             builder.add(HeaterBlockEntity.CONTAINER_NAME, Heater.MOD_NAME);
+            builder.add(ThermostatBlockEntity.CONTAINER_NAME, "Thermostat");
             builder.add(HeaterTabs.TAB_NAME, Heater.MOD_NAME);
         }
 
@@ -265,11 +273,11 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             for (var state : WeatherState.values()) {
                 var prefix = BY_STATE.get(state);
 
-                var weathering = blocks.weathering().pick(state);
+                var weathering = requireNonNull(blocks.weathering().pick(state));
                 builder.add(weathering, prefix + name);
                 builder.add(weathering.asItem(), prefix + name);
 
-                var waxed = blocks.waxed().pick(state);
+                var waxed = requireNonNull(blocks.waxed().pick(state));
                 builder.add(waxed, WAXED + prefix + name);
                 builder.add(waxed.asItem(), WAXED + prefix + name);
             }
@@ -282,6 +290,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             super(dataOutput, registryLookup);
         }
 
+        @SuppressWarnings("null")
         @Override
         public void generate() {
             HeaterBlocks.HEATER.forEach(block -> this.add(block, this::createNameableBlockEntityTable));
@@ -313,6 +322,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             super(registries, output);
         }
 
+        @SuppressWarnings("null")
         @Override
         public void buildRecipes() {
             shaped(RecipeCategory.MISC, HeaterBlocks.HEATER.weathering().unaffected())
@@ -352,8 +362,8 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
 
         private void generateWaxingRecipe(WeatheringCopperCollection<Block> blocks) {
             for (var state : WeatherState.values()) {
-                var block = blocks.weathering().pick(state);
-                var waxed = blocks.waxed().pick(state);
+                var block = requireNonNull(blocks.weathering().pick(state));
+                var waxed = requireNonNull(blocks.waxed().pick(state));
                 shapeless(RecipeCategory.MISC, waxed)
                         .requires(block).requires(Items.HONEYCOMB)
                         .unlockedBy(getHasName(block), has(block))

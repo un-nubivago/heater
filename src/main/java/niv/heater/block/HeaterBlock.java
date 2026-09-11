@@ -33,7 +33,7 @@ import niv.heater.registry.HeaterBlocks;
 @NullMarked
 public class HeaterBlock extends AbstractFurnaceBlock {
 
-    @SuppressWarnings("java:S1845")
+    @SuppressWarnings({ "null", "java:S1845" })
     public static final MapCodec<HeaterBlock> CODEC = simpleCodec(HeaterBlock::new);
 
     public HeaterBlock(Properties properties) {

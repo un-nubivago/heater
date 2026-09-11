@@ -122,5 +122,4 @@ modrinth {
         required.project "fabric-api"
         required.project "burning"
     }
-    debugMode = true
 }

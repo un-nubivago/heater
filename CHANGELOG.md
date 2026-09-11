@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## Added
+
++ Added a menu for the Thermostat, replacing the previous method to set the fuel filter.
+
 ## Changed
 
 + Moved the "only Thermostats can insert heat into a Heater" logic into the Heater to prevent potential problems with 3rd-part mods.
