@@ -38,13 +38,11 @@ import niv.heater.registry.HeaterBlocks;
 @NullMarked
 public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
 
-    @SuppressWarnings({ "null", "java:S1845" })
+    @SuppressWarnings("java:S1845")
     public static final MapCodec<HeatPipeBlock> CODEC = simpleCodec(HeatPipeBlock::new);
 
-    @SuppressWarnings("null")
     private static final ThreadLocal<Set<Pair<Level, BlockPos>>> EXPLORED_SET = ThreadLocal.withInitial(HashSet::new);
 
-    @SuppressWarnings("null")
     public HeatPipeBlock(Properties settings) {
         super(6.0F, settings);
         this.registerDefaultState(this.stateDefinition.any()
@@ -104,7 +102,6 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
         return inserted;
     }
 
-    @SuppressWarnings("null")
     private boolean tryAdd(Level level, BlockPos pos) {
         return EXPLORED_SET.get().add(Pair.of(level, pos));
     }
@@ -116,12 +113,12 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
     }
 
     private Direction[] getConnectedDirection(BlockState state, @Nullable RandomSource random) {
-        @SuppressWarnings("null")
         var result = Direction.stream()
                 .filter(value -> state.getValueOrElse(PROPERTY_BY_DIRECTION.get(value), false).booleanValue())
                 .toArray(Direction[]::new);
 
         if (result.length >= 1 && random != null) {
+            // Fisher-Yates Shuffle
             for (var i = result.length - 1; i > 0; i--) {
                 var j = random.nextInt(i + 1);
                 var dir = result[i];
@@ -156,7 +153,6 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
         return false;
     }
 
-    @SuppressWarnings("null")
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         var level = context.getLevel();
@@ -171,7 +167,6 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
                 .trySetValue(WATERLOGGED, level.getFluidState(pos).is(Fluids.WATER));
     }
 
-    @SuppressWarnings("null")
     @Override
     protected BlockState updateShape(
             BlockState state, LevelReader level, ScheduledTickAccess scheduler, BlockPos pos,

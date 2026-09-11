@@ -9,7 +9,6 @@ import niv.heater.block.HeatPipeBlock;
 import niv.heater.block.entity.HeaterBlockEntity;
 import niv.heater.block.entity.ThermostatBlockEntity;
 
-@SuppressWarnings("null")
 @NullMarked
 public class HeaterRegistrar {
     private HeaterRegistrar() {
@@ -21,7 +20,7 @@ public class HeaterRegistrar {
                 HeaterBlockEntityTypes.HEATER);
 
         BurningStorage.SIDED.registerForBlockEntity(
-                (entity, side) -> entity.getBurningStorage(),
+                HeaterBlockEntity::getBurningStorage,
                 HeaterBlockEntityTypes.HEATER);
 
         BurningStorage.SIDED.registerForBlockEntity(

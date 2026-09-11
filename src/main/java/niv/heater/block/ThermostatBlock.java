@@ -33,10 +33,9 @@ import niv.heater.registry.HeaterBlocks;
 @NullMarked
 public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
 
-    @SuppressWarnings({ "null", "java:S1845" })
+    @SuppressWarnings("java:S1845")
     public static final MapCodec<ThermostatBlock> CODEC = simpleCodec(ThermostatBlock::new);
 
-    @SuppressWarnings("null")
     public ThermostatBlock(Properties settings) {
         super(settings);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
@@ -60,19 +59,16 @@ public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
         builder.add(FACING);
     }
 
-    @SuppressWarnings("null")
     @Override
     public BlockState rotate(BlockState state, Rotation rotation) {
         return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
-    @SuppressWarnings("null")
     @Override
     public BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
-    @SuppressWarnings("null")
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState()

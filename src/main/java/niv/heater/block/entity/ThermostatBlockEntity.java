@@ -1,7 +1,5 @@
 package niv.heater.block.entity;
 
-import static niv.heater.registry.HeaterBlockEntityTypes.HEATER;
-
 import java.util.List;
 
 import org.jspecify.annotations.NullMarked;
@@ -34,7 +32,6 @@ public class ThermostatBlockEntity extends BlockEntity {
 
     private static final String TAG_FILTER = "filter";
 
-    @SuppressWarnings("null")
     private final ThreadLocal<Boolean> hasBeenExploredAlready = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     private FuelVariant filter = FuelVariant.BLANK;
@@ -83,13 +80,13 @@ public class ThermostatBlockEntity extends BlockEntity {
         if (inserted >= maxAmount)
             return maxAmount;
 
-        var safeLevel = this.level;
-        if (safeLevel != null && (safeLevel.hasNeighborSignal(getBlockPos()) || this.filter == resource)) {
+        var thisLevel = this.getLevel();
+        if (thisLevel != null && (thisLevel.hasNeighborSignal(getBlockPos()) || this.filter.equals(resource))) {
             resource = this.filter.isBlank() ? resource : this.filter;
 
-            var rel = getBlockPos().relative(facing);
-            var storage = BurningStorage.SIDED.find(safeLevel, rel, facing.getOpposite());
-            if (storage != null && (storage.supportsInsertion() || safeLevel.getBlockEntity(rel, HEATER).isPresent()))
+            var targetPos = getBlockPos().relative(facing);
+            var storage = BurningStorage.SIDED.find(thisLevel, targetPos, facing.getOpposite());
+            if (storage != null && storage.supportsInsertion())
                 inserted += storage.insert(resource, maxAmount - inserted, transaction);
         }
 
@@ -100,7 +97,7 @@ public class ThermostatBlockEntity extends BlockEntity {
         return (resource, maxAmount, transaction) -> tryInsert(side, resource, maxAmount, requireNonNull(transaction));
     }
 
-    @SuppressWarnings({ "null", "java:S2637" })
+    @SuppressWarnings("java:S2637")
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
@@ -113,7 +110,6 @@ public class ThermostatBlockEntity extends BlockEntity {
         output.storeNullable(TAG_FILTER, FuelVariant.CODEC, this.filter);
     }
 
-    @SuppressWarnings("null")
     @Override
     protected void applyImplicitComponents(DataComponentGetter getter) {
         super.applyImplicitComponents(getter);

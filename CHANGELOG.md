@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## Changed
+
++ Moved the "only Thermostats can insert heat into a Heater" logic into the Heater to prevent potential problems with 3rd-part mods.
+
 ## [4.2] - 2026-01-11
 
 ### Added
@@ -158,22 +162,22 @@ Backward release for Minecraft 1.20.1, no corresponding tag.
 
 Initial release.
 
-[4.2]: https://github.com/un-nubivago/heater/releases/tag/4.2
-[4.1]: https://github.com/un-nubivago/heater/releases
-[4.0.7]: https://github.com/un-nubivago/heater/releases/tag/4.0.7
-[4.0.6]: https://github.com/un-nubivago/heater/releases/tag/4.0.6
-[4.0.5]: https://github.com/un-nubivago/heater/releases/tag/4.0.5
-[4.0.4]: https://github.com/un-nubivago/heater/releases/tag/4.0.4
-[4.0.3]: https://github.com/un-nubivago/heater/releases/tag/4.0.3
-[4.0.2]: https://github.com/un-nubivago/heater/releases/tag/4.0.2
-[4.0.1]: https://github.com/un-nubivago/heater/releases/tag/4.0.1
-[4.0]: https://github.com/un-nubivago/heater/releases/tag/4.0
-[3.3]: https://github.com/un-nubivago/heater/releases/tag/3.3
-[3.2]: https://github.com/un-nubivago/heater/releases/tag/3.2
-[3.1]: https://github.com/un-nubivago/heater/releases/tag/3.1
-[3.0]: https://github.com/un-nubivago/heater/releases/tag/3.0
-[2.0]: https://github.com/un-nubivago/heater/releases/tag/2.0
-[1.2.0]: https://github.com/un-nubivago/heater/releases/tag/1.2.0
-[1.1.1]: https://github.com/un-nubivago/heater/releases/tag/1.1.1
-[1.1.0]: https://github.com/un-nubivago/heater/releases/tag/1.1.0
+[Unreleased]: https://github.com/un-nubivago/heater/compare/4.2...HEAD
+[4.2]: https://github.com/un-nubivago/heater/compare/4.0.7...4.2
+[4.0.7]: https://github.com/un-nubivago/heater/compare/4.0.6...4.0.7
+[4.0.6]: https://github.com/un-nubivago/heater/compare/4.0.5...4.0.6
+[4.0.5]: https://github.com/un-nubivago/heater/compare/4.0.4...4.0.5
+[4.0.4]: https://github.com/un-nubivago/heater/compare/4.0.3...4.0.4
+[4.0.3]: https://github.com/un-nubivago/heater/compare/4.0.2...4.0.3
+[4.0.2]: https://github.com/un-nubivago/heater/compare/4.0.1...4.0.2
+[4.0.1]: https://github.com/un-nubivago/heater/compare/4.0...4.0.1
+[4.0]: https://github.com/un-nubivago/heater/compare/3.3...4.0
+[3.3]: https://github.com/un-nubivago/heater/compare/3.2...3.3
+[3.2]: https://github.com/un-nubivago/heater/compare/3.1...3.2
+[3.1]: https://github.com/un-nubivago/heater/compare/3.0...3.1
+[3.0]: https://github.com/un-nubivago/heater/compare/2.0...3.0
+[2.0]: https://github.com/un-nubivago/heater/compare/1.2.0...2.0
+[1.2.0]: https://github.com/un-nubivago/heater/compare/1.1.1...1.2.0
+[1.1.1]: https://github.com/un-nubivago/heater/compare/1.1.0...1.1.1
+[1.1.0]: https://github.com/un-nubivago/heater/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/un-nubivago/heater/releases/tag/1.0.0

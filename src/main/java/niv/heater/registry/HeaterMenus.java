@@ -12,7 +12,6 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import niv.heater.screen.HeaterMenu;
 
-@SuppressWarnings("null")
 @NullMarked
 public class HeaterMenus {
     private HeaterMenus() {
