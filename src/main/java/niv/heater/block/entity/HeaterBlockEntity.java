@@ -3,12 +3,14 @@ package niv.heater.block.entity;
 import static net.minecraft.world.inventory.FurnaceFuelSlot.isBucket;
 import static niv.burning.api.FuelVariant.isFuel;
 import static niv.heater.Heater.MOD_ID;
+import static niv.heater.registry.HeaterBlockEntityTypes.THERMOSTAT;
 
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import net.fabricmc.fabric.api.transfer.v1.item.ContainerStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.FilteringStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
@@ -47,11 +49,6 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
     }
 
     private final SimpleBurningStorage burningStorage = new SimpleBurningStorage() {
-        @Override
-        public boolean supportsInsertion() {
-            return false;
-        }
-
         @Override
         protected void onFinalCommit() {
             HeaterBlockEntity.this.setChanged();
@@ -92,7 +89,6 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
 
     private final ContainerStorage[] wrappers = new ContainerStorage[7];
 
-    @SuppressWarnings("null")
     private NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
 
     public HeaterBlockEntity(BlockPos pos, BlockState state) {
@@ -148,8 +144,13 @@ public class HeaterBlockEntity extends BaseContainerBlockEntity implements World
         return this.burningStorage.insert(resource, resource.getDuration(), transaction) > 0;
     }
 
-    public Storage<FuelVariant> getBurningStorage() {
-        return this.burningStorage;
+    public Storage<FuelVariant> getBurningStorage(@Nullable Direction side) {
+        var thisLevel = this.getLevel();
+        if (side != null && thisLevel != null && thisLevel.getBlockEntity(getBlockPos().relative(side), THERMOSTAT).isPresent()) {
+            return FilteringStorage.insertOnlyOf(this.burningStorage);
+        } else {
+            return FilteringStorage.extractOnlyOf(this.burningStorage);
+        }
     }
 
     public ContainerStorage getInventoryStorage(@Nullable Direction side) {

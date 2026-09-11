@@ -34,6 +34,7 @@ public class HeaterScreen extends AbstractContainerScreen<HeaterMenu> {
 
     @Override
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        super.extractBackground(graphics, mouseX, mouseY, a);
         int x = this.leftPos;
         int y = this.topPos;
         graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, .0F, .0F, this.imageWidth, this.imageHeight, 256,
