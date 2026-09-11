@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [4.3] - 2026-09-11
+
 ## Added
 
 + Added a menu for the Thermostat, replacing the previous method to set the fuel filter.
@@ -166,7 +168,8 @@ Backward release for Minecraft 1.20.1, no corresponding tag.
 
 Initial release.
 
-[Unreleased]: https://github.com/un-nubivago/heater/compare/4.2...HEAD
+[Unreleased]: https://github.com/un-nubivago/heater/compare/4.3...HEAD
+[4.3]: https://github.com/un-nubivago/heater/compare/4.2...4.3
 [4.2]: https://github.com/un-nubivago/heater/compare/4.0.7...4.2
 [4.0.7]: https://github.com/un-nubivago/heater/compare/4.0.6...4.0.7
 [4.0.6]: https://github.com/un-nubivago/heater/compare/4.0.5...4.0.6
