@@ -3,7 +3,7 @@
     "id": "heater",
     "version": "${mod_version}",
     "name": "Heater",
-    "description": "A bare minimal tech mod for centralised furnace fuel management.",
+    "description": "Propagates fuel power from heaters through pipes and thermostats into furnaces, smokers, and compatible machines.",
     "authors": [
         "Nubìvago"
     ],
@@ -30,7 +30,7 @@
     },
     "depends": {
         "fabricloader": ">=${loader_version}",
-        "minecraft": "~${minecraft_version}",
+        "minecraft": ">=${minecraft_version}",
         "java": ">=25",
         "fabric-api": "*",
         "burning": "*"

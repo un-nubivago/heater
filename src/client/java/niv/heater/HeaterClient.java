@@ -12,6 +12,7 @@ public class HeaterClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         MenuScreens.register(HeaterMenus.HEATER, HeaterScreen::new);
+        MenuScreens.register(HeaterMenus.THERMOSTAT, ThermostatScreen::new);
     }
 
 }

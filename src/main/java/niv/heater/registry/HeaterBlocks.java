@@ -32,6 +32,7 @@ import niv.heater.block.WeatheringHeaterBlock;
 import niv.heater.block.WeatheringThermostatBlock;
 
 @NullMarked
+@SuppressWarnings("null")
 public class HeaterBlocks {
     private HeaterBlocks() {
     }

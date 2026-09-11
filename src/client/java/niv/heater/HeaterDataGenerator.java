@@ -59,6 +59,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.WeatheringCopperBlocks;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import niv.heater.block.entity.HeaterBlockEntity;
+import niv.heater.block.entity.ThermostatBlockEntity;
 import niv.heater.registry.HeaterBlocks;
 import niv.heater.registry.HeaterTabs;
 
@@ -119,7 +120,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
 
         @SuppressWarnings("null")
         private static final TexturedModel.Provider THERMOSTAT = TexturedModel
-                .createDefault(HeaterModelProvider::orientableFullTilt, HeaterModelTemplates.THERMOSTAT);
+                .createDefault(HeaterModelProvider::thermostatFullTilt, HeaterModelTemplates.THERMOSTAT);
 
         @SuppressWarnings("null")
         private static final TexturedModel.Provider PIPE_CORE = TexturedModel
@@ -139,7 +140,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             HeaterBlocks.HEATER.waxedMapping()
                     .forEach((block, waxed) -> createWaxingFurnace(generator, block, waxed));
             HeaterBlocks.THERMOSTAT.waxedMapping()
-                    .forEach((block, waxed) -> createWaxingOrientable(generator, block, waxed));
+                    .forEach((block, waxed) -> createWaxingThermostat(generator, block, waxed));
             HeaterBlocks.HEAT_PIPE.waxedMapping()
                     .forEach((block, waxed) -> createWaxingPipe(generator, block, waxed));
         }
@@ -169,7 +170,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             generator.itemModelOutput.copy(block.asItem(), waxed.asItem());
         }
 
-        private static final void createWaxingOrientable(BlockModelGenerators generator, Block block, Block waxed) {
+        private static final void createWaxingThermostat(BlockModelGenerators generator, Block block, Block waxed) {
             var model = THERMOSTAT.create(block, generator.modelOutput);
             var variant = BlockModelGenerators.plainVariant(model);
 
@@ -213,7 +214,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             generator.registerSimpleItemModel(waxed, core);
         }
 
-        private static TextureMapping orientableFullTilt(Block block) {
+        private static TextureMapping thermostatFullTilt(Block block) {
             return new TextureMapping()
                     .put(TextureSlot.TOP, TextureMapping.getBlockTexture(block, "_top"))
                     .put(TextureSlot.SIDE, TextureMapping.getBlockTexture(block, "_side"))
@@ -244,6 +245,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             addAll(builder, "Thermostat", HeaterBlocks.THERMOSTAT);
 
             builder.add(HeaterBlockEntity.CONTAINER_NAME, Heater.MOD_NAME);
+            builder.add(ThermostatBlockEntity.CONTAINER_NAME, "Thermostat");
             builder.add(HeaterTabs.TAB_NAME, Heater.MOD_NAME);
         }
 
@@ -297,6 +299,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             super(registries, output);
         }
 
+        @SuppressWarnings("null")
         @Override
         public void buildRecipes() {
             shaped(RecipeCategory.MISC, HeaterBlocks.HEATER.unaffected())

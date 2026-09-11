@@ -8,12 +8,8 @@ import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -29,8 +25,6 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
 import niv.heater.block.entity.ThermostatBlockEntity;
 import niv.heater.registry.HeaterBlocks;
-
-import static niv.burning.api.FuelVariant.isFuel;
 
 @NullMarked
 public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
@@ -80,33 +74,16 @@ public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
     }
 
     @Override
-    protected InteractionResult useItemOn(
-            ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
-            InteractionHand hand, BlockHitResult hitResult) {
-        if (level.isClientSide())
-            return stack.isEmpty() || isFuel(stack) ? InteractionResult.SUCCESS : InteractionResult.PASS;
-
-        var someEntity = level.getBlockEntity(pos, THERMOSTAT);
-        if (someEntity.isEmpty())
-            return InteractionResult.PASS;
-
-        @SuppressWarnings("null")
-        var entity = someEntity.get();
-
-        if (stack.isEmpty()) {
-            entity.unsetFilter();
-            level.playSound(null, pos, SoundEvents.COPPER_HIT, SoundSource.BLOCKS, 1.2f, 1.2f);
-        } else if (entity.setFilter(stack)) {
-            level.playSound(null, pos, SoundEvents.COPPER_HIT, SoundSource.BLOCKS, 1.2f, 1.3f);
-        } else {
-            return InteractionResult.PASS;
-        }
-
-        return InteractionResult.SUCCESS;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new ThermostatBlockEntity(pos, state);
     }
 
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new ThermostatBlockEntity(pos, state);
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+            BlockHitResult hitResult) {
+        if (!level.isClientSide()) {
+            level.getBlockEntity(pos, THERMOSTAT).ifPresent(player::openMenu);
+        }
+        return InteractionResult.SUCCESS;
     }
 }

@@ -22,16 +22,12 @@ public class Heater implements ModInitializer {
     @Override
     @SuppressWarnings("java:S1192")
     public void onInitialize() {
-        // This code runs as soon as Minecraft is in a mod-load-ready state.
-        // However, some things (like resources) may still be uninitialized.
-        // Proceed with mild caution.
-
-        LOGGER.info("Initialize");
-
         HeaterBlocks.initialize();
         HeaterBlockEntityTypes.initialize();
         HeaterRegistrar.initialize();
         HeaterMenus.initialize();
         HeaterTabs.initialize();
+
+        LOGGER.info("({}) Ready", MOD_NAME);
     }
 }

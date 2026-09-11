@@ -114,13 +114,14 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
             EXPLORED_SET.remove();
     }
 
+    @SuppressWarnings("null")
     private Direction[] getConnectedDirection(BlockState state, @Nullable RandomSource random) {
-        @SuppressWarnings("null")
         var result = Direction.stream()
                 .filter(value -> state.getValueOrElse(PROPERTY_BY_DIRECTION.get(value), false).booleanValue())
                 .toArray(Direction[]::new);
 
         if (result.length >= 1 && random != null) {
+            // Fisher-Yates Shuffle
             for (var i = result.length - 1; i > 0; i--) {
                 var j = random.nextInt(i + 1);
                 var dir = result[i];

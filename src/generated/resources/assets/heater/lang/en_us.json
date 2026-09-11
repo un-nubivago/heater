@@ -24,5 +24,6 @@
   "block.heater.weathered_heater": "Weathered Heater",
   "block.heater.weathered_thermostat": "Weathered Thermostat",
   "container.heater.heater": "Heater",
+  "container.heater.thermostat": "Thermostat",
   "creative.heater.tab": "Heater"
 }

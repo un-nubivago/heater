@@ -21,7 +21,7 @@ public class HeaterRegistrar {
                 HeaterBlockEntityTypes.HEATER);
 
         BurningStorage.SIDED.registerForBlockEntity(
-                (entity, side) -> entity.getBurningStorage(),
+                HeaterBlockEntity::getBurningStorage,
                 HeaterBlockEntityTypes.HEATER);
 
         BurningStorage.SIDED.registerForBlockEntity(
