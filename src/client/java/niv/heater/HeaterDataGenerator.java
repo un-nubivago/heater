@@ -26,6 +26,8 @@ import java.util.stream.Stream;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import com.google.common.collect.ImmutableMap;
+
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
@@ -93,7 +95,6 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
         public static final ModelTemplate PIPE_ARM = create("pipe_arm", "_arm",
                 TextureSlot.TEXTURE);
 
-        @SuppressWarnings("null")
         private static ModelTemplate create(String template, @Nullable String suffix, TextureSlot... textureSlots) {
             return new ModelTemplate(
                     Optional.of(fromNamespaceAndPath(MOD_ID, "block/" + template)),
@@ -120,15 +121,12 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
                 .select(Direction.SOUTH, Y_ROT_180)
                 .select(Direction.WEST, Y_ROT_270);
 
-        @SuppressWarnings("null")
         private static final TexturedModel.Provider THERMOSTAT = TexturedModel
-                .createDefault(HeaterModelProvider::orientableFullTilt, HeaterModelTemplates.THERMOSTAT);
+                .createDefault(HeaterModelProvider::thermostatFullTilt, HeaterModelTemplates.THERMOSTAT);
 
-        @SuppressWarnings("null")
         private static final TexturedModel.Provider PIPE_CORE = TexturedModel
                 .createDefault(HeaterModelProvider::pipeCore, HeaterModelTemplates.PIPE_CORE);
 
-        @SuppressWarnings("null")
         private static final TexturedModel.Provider PIPE_ARM = TexturedModel
                 .createDefault(HeaterModelProvider::pipeArm, HeaterModelTemplates.PIPE_ARM);
 
@@ -136,14 +134,13 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             super(output);
         }
 
-        @SuppressWarnings("null")
         @Override
         public void generateBlockStateModels(BlockModelGenerators generator) {
             for (var state : WeatherState.values()) {
                 createWaxingFurnace(generator,
                         HeaterBlocks.HEATER.weathering().pick(state),
                         HeaterBlocks.HEATER.waxed().pick(state));
-                createWaxingOrientable(generator,
+                createWaxingThermostat(generator,
                         HeaterBlocks.THERMOSTAT.weathering().pick(state),
                         HeaterBlocks.THERMOSTAT.waxed().pick(state));
                 createWaxingPipe(generator,
@@ -177,7 +174,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             generator.itemModelOutput.copy(block.asItem(), waxed.asItem());
         }
 
-        private static final void createWaxingOrientable(BlockModelGenerators generator, Block block, Block waxed) {
+        private static final void createWaxingThermostat(BlockModelGenerators generator, Block block, Block waxed) {
             var model = THERMOSTAT.create(block, generator.modelOutput);
             var variant = BlockModelGenerators.plainVariant(model);
 
@@ -221,7 +218,7 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             generator.registerSimpleItemModel(waxed, core);
         }
 
-        private static TextureMapping orientableFullTilt(Block block) {
+        private static TextureMapping thermostatFullTilt(Block block) {
             return new TextureMapping()
                     .put(TextureSlot.TOP, TextureMapping.getBlockTexture(block, "_top"))
                     .put(TextureSlot.SIDE, TextureMapping.getBlockTexture(block, "_side"))
@@ -241,6 +238,15 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
 
     private static class HeaterEnglishLanguageProvider extends FabricLanguageProvider {
 
+        private static final ImmutableMap<WeatherState, String> BY_STATE = ImmutableMap.<WeatherState, String>builder()
+                .put(WeatherState.UNAFFECTED, "")
+                .put(WeatherState.EXPOSED, "Exposed ")
+                .put(WeatherState.WEATHERED, "Weathered ")
+                .put(WeatherState.OXIDIZED, "Oxidized ")
+                .build();
+
+        private static final String WAXED = "Waxed ";
+
         private HeaterEnglishLanguageProvider(FabricPackOutput dataOutput, CompletableFuture<Provider> registryLookup) {
             super(dataOutput, registryLookup);
         }
@@ -255,16 +261,18 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             builder.add(HeaterTabs.TAB_NAME, Heater.MOD_NAME);
         }
 
-        @SuppressWarnings("null")
         private void addAll(TranslationBuilder builder, String name, WeatheringCopperCollection<Block> blocks) {
-            builder.add(blocks.weathering().unaffected(), name);
-            builder.add(blocks.weathering().exposed(), "Exposed " + name);
-            builder.add(blocks.weathering().weathered(), "Weathered " + name);
-            builder.add(blocks.weathering().oxidized(), "Oxidized " + name);
-            builder.add(blocks.waxed().unaffected(), "Waxed " + name);
-            builder.add(blocks.waxed().exposed(), "Waxed Exposed " + name);
-            builder.add(blocks.waxed().weathered(), "Waxed Weathered " + name);
-            builder.add(blocks.waxed().oxidized(), "Waxed Oxidized " + name);
+            for (var state : WeatherState.values()) {
+                var prefix = BY_STATE.get(state);
+
+                var weathering = blocks.weathering().pick(state);
+                builder.add(weathering, prefix + name);
+                builder.add(weathering.asItem(), prefix + name);
+
+                var waxed = blocks.waxed().pick(state);
+                builder.add(waxed, WAXED + prefix + name);
+                builder.add(waxed.asItem(), WAXED + prefix + name);
+            }
         }
     }
 
@@ -274,7 +282,6 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             super(dataOutput, registryLookup);
         }
 
-        @SuppressWarnings("null")
         @Override
         public void generate() {
             HeaterBlocks.HEATER.forEach(block -> this.add(block, this::createNameableBlockEntityTable));
@@ -306,7 +313,6 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             super(registries, output);
         }
 
-        @SuppressWarnings("null")
         @Override
         public void buildRecipes() {
             shaped(RecipeCategory.MISC, HeaterBlocks.HEATER.weathering().unaffected())
@@ -344,7 +350,6 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
             generateWaxingRecipe(HeaterBlocks.THERMOSTAT);
         }
 
-        @SuppressWarnings("null")
         private void generateWaxingRecipe(WeatheringCopperCollection<Block> blocks) {
             for (var state : WeatherState.values()) {
                 var block = blocks.weathering().pick(state);
