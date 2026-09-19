@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "heater:heat_pipe"
+        "recipes": "heater:heat_pipe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

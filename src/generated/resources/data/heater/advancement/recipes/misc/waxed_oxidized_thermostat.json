@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "heater:waxed_oxidized_thermostat"
+        "recipes": "heater:waxed_oxidized_thermostat"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

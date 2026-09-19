@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "heater:waxed_heater"
+        "recipes": "heater:waxed_heater"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

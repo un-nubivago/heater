@@ -4,8 +4,6 @@ import static niv.heater.registry.HeaterBlockEntityTypes.THERMOSTAT;
 
 import org.jspecify.annotations.NullMarked;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
@@ -28,9 +26,6 @@ import niv.heater.registry.HeaterBlocks;
 @NullMarked
 public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
 
-    @SuppressWarnings({ "null", "java:S1845" })
-    public static final MapCodec<ThermostatBlock> CODEC = simpleCodec(ThermostatBlock::new);
-
     @SuppressWarnings("null")
     public ThermostatBlock(Properties settings) {
         super(settings);
@@ -43,11 +38,6 @@ public class ThermostatBlock extends DirectionalBlock implements EntityBlock {
                 return state;
         }
         return WeatherState.UNAFFECTED;
-    }
-
-    @Override
-    public MapCodec<? extends ThermostatBlock> codec() {
-        return CODEC;
     }
 
     @Override

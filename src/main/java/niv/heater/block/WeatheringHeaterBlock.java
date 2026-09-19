@@ -2,25 +2,15 @@ package niv.heater.block;
 
 import org.jspecify.annotations.NullMarked;
 
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.WeatheringCopper;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
 @SuppressWarnings("java:S110")
 @NullMarked
 public class WeatheringHeaterBlock extends HeaterBlock implements WeatheringCopper {
-
-    @SuppressWarnings({ "null", "java:S1845" })
-    public static final MapCodec<WeatheringHeaterBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            WeatherState.CODEC.fieldOf("weathering_state").forGetter(WeatheringHeaterBlock::getAge),
-            Properties.CODEC.fieldOf("properties").forGetter(BlockBehaviour::properties))
-            .apply(instance, WeatheringHeaterBlock::new));
 
     private final WeatherState weatherState;
 
@@ -32,11 +22,6 @@ public class WeatheringHeaterBlock extends HeaterBlock implements WeatheringCopp
     @Override
     public WeatherState getAge() {
         return this.weatherState;
-    }
-
-    @Override
-    public MapCodec<? extends WeatheringHeaterBlock> codec() {
-        return CODEC;
     }
 
     @Override

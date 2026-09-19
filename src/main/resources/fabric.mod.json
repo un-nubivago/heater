@@ -1,7 +1,7 @@
 {
     "schemaVersion": 1,
     "id": "heater",
-    "version": "${mod_version}",
+    "version": "${version}",
     "name": "Heater",
     "description": "Propagates fuel power from heaters through pipes and thermostats into furnaces, smokers, and compatible machines.",
     "authors": [

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "heater:waxed_weathered_thermostat"
+        "recipes": "heater:waxed_weathered_thermostat"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

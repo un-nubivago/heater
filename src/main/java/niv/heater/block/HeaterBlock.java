@@ -6,8 +6,6 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
 import net.minecraft.core.BlockPos;
@@ -32,9 +30,6 @@ import niv.heater.registry.HeaterBlocks;
 
 @NullMarked
 public class HeaterBlock extends AbstractFurnaceBlock {
-
-    @SuppressWarnings({ "null", "java:S1845" })
-    public static final MapCodec<HeaterBlock> CODEC = simpleCodec(HeaterBlock::new);
 
     public HeaterBlock(Properties properties) {
         super(properties);
@@ -86,11 +81,6 @@ public class HeaterBlock extends AbstractFurnaceBlock {
             }
         }
         return result;
-    }
-
-    @Override
-    public MapCodec<? extends HeaterBlock> codec() {
-        return CODEC;
     }
 
     @Override

@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "heater:heater"
+        "recipes": "heater:heater"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

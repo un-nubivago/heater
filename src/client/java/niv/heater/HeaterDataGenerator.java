@@ -37,6 +37,7 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootSubProvider;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.blockstates.MultiPartGenerator;
@@ -53,11 +54,12 @@ import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.WeatheringCopper.WeatherState;
 import net.minecraft.world.level.block.WeatheringCopperCollection;
@@ -311,15 +313,19 @@ public class HeaterDataGenerator implements DataGeneratorEntrypoint {
         }
 
         @Override
-        protected RecipeProvider createRecipeProvider(Provider registryLookup, RecipeOutput exporter) {
-            return new InnerRecipeProvider(registryLookup, exporter);
+        protected RecipeProvider createRecipeProvider(Provider registries,
+                BootstrapContext<Recipe<?>> recipes,
+                BootstrapContext<Advancement> advancements) {
+            return new InnerRecipeProvider(recipes, advancements);
         }
     }
 
     private static final class InnerRecipeProvider extends RecipeProvider {
 
-        protected InnerRecipeProvider(Provider registries, RecipeOutput output) {
-            super(registries, output);
+        protected InnerRecipeProvider(
+                BootstrapContext<Recipe<?>> recipeOutput,
+                BootstrapContext<Advancement> advancementOutput) {
+            super(recipeOutput, advancementOutput);
         }
 
         @SuppressWarnings("null")

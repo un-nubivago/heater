@@ -33,7 +33,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "heater:thermostat"
+        "recipes": "heater:thermostat"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

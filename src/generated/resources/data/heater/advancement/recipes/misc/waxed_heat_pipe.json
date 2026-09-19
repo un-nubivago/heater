@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "heater:waxed_heat_pipe"
+        "recipes": "heater:waxed_heat_pipe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

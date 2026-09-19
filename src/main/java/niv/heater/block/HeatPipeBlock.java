@@ -10,8 +10,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
@@ -37,9 +35,6 @@ import niv.heater.registry.HeaterBlocks;
 
 @NullMarked
 public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
-
-    @SuppressWarnings({ "null", "java:S1845" })
-    public static final MapCodec<HeatPipeBlock> CODEC = simpleCodec(HeatPipeBlock::new);
 
     @SuppressWarnings("null")
     private static final ThreadLocal<Set<Pair<Level, BlockPos>>> EXPLORED_SET = ThreadLocal.withInitial(HashSet::new);
@@ -132,11 +127,6 @@ public class HeatPipeBlock extends PipeBlock implements SimpleWaterloggedBlock {
         }
 
         return result;
-    }
-
-    @Override
-    public MapCodec<? extends HeatPipeBlock> codec() {
-        return CODEC;
     }
 
     @Override
